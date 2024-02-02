@@ -1,0 +1,12 @@
+.vscode
+*.code-workspace
+build
+.VSCodeCounter
+*.exe
+*.out
+*.[sS]
+*.o
+*.obj
+*.ii
+*.i
+*.ll
