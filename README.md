@@ -1,4 +1,4 @@
-<div align="center">
+<div style="text-align:center">
     <img src="image/logo.png" , alt="logo" />
     <h1>Cppfastbox：C++高性能实用工具</h1>
     <a href="LICENSE">
@@ -12,6 +12,14 @@
         <img src="https://img.shields.io/badge/chat-on%20QQ-red.svg" , alt="QQ" />
     </a>
 </div>
+
+## 联系我们
+
+- Email: feedback@trajectronix.onmicrosoft.com
+- QQ群: 948223021
+- 仓库: [Gitee](https://gitee.com/trajectronix/cppfastbox), [GitHub](https://github.com/trajectronix/cppfastbox)
+
+## 介绍
 
 Cppfastbox是用于替代标准库的fastbox，具有如下特征：
 
