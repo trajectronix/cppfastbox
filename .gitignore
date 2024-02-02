@@ -11,3 +11,4 @@ build
 *.i
 *.ll
 .xmake
+install
