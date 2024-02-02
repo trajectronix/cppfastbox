@@ -10,3 +10,4 @@ build
 *.ii
 *.i
 *.ll
+.xmake
