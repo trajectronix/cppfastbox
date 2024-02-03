@@ -21,7 +21,7 @@
 
 ## 介绍
 
-Cppfastbox是用于替代标准库的fastbox，具有如下特征：
+Cppfastbox是一个用于替代标准库的fastbox，其具有如下特性：
 
 - 硬件算法加速
 - 支持多个平台
