@@ -1,3 +1,10 @@
+/**
+ * @file platform.h
+ * @brief 平台相关定义
+ *
+ * @copyright Copyright 2024-present Trajectronix Open Source Group
+ *
+ */
 #pragma once
 #include <cstddef>
 #include <utility>
