@@ -127,7 +127,7 @@ namespace cppfastbox
         operating_system_name[leaf * std::to_underlying(operating_system::os_num) + std::to_underlying(operating_system::native)]};
 
     // 当前cpu架构
-    enum class cpu_architecture : std::size_t
+    enum class cpu_arch : std::size_t
     {
         x86,
         x64,
@@ -157,17 +157,17 @@ namespace cppfastbox
 #endif
     };
     // cpu架构名称
-    constexpr const inline char* cpu_architecture_name[]{"x86",       "x64",         "arm",         "arm64",         "la",     "la64",
-                                                         "wasm",      "wasm64",      "X86",         "X86_64",        "ARM",    "AArch64",
-                                                         "LoongArch", "LoongArch64", "WebAssembly", "WebAssembly64", "i386",   "x86-64",
-                                                         "aarch32",   "aarch64",     "loongarch",   "loongarch64",   "wasm32", "wasm64"};
+    constexpr const inline char* cpu_arch_name[]{"x86",       "x64",         "arm",         "arm64",         "la",     "la64",
+                                                 "wasm",      "wasm64",      "X86",         "X86_64",        "ARM",    "AArch64",
+                                                 "LoongArch", "LoongArch64", "WebAssembly", "WebAssembly64", "i386",   "x86-64",
+                                                 "aarch32",   "aarch64",     "loongarch",   "loongarch64",   "wasm32", "wasm64"};
     /**
      * @brief 判断当前cpu是否是给定cpu
      *
      * @tparam arch cpu枚举
      */
-    template <cpu_architecture arch>
-    constexpr inline auto is_arch{cpu_architecture::native == arch};
+    template <cpu_arch arch>
+    constexpr inline auto is_arch{cpu_arch::native == arch};
     /**
      * @brief 获取当前cpu名称
      *
@@ -175,7 +175,7 @@ namespace cppfastbox
      */
     template <std::size_t leaf>
     constexpr inline auto get_native_arch_name{
-        cpu_architecture_name[leaf * std::to_underlying(cpu_architecture::arch_num) + std::to_underlying(cpu_architecture::native)]};
+        cpu_arch_name[leaf * std::to_underlying(cpu_arch::arch_num) + std::to_underlying(cpu_arch::native)]};
 
     // 当前编译器
     enum class compiler : std::size_t
@@ -215,12 +215,61 @@ namespace cppfastbox
     constexpr inline auto is_little_endian{std::endian::native == std::endian::little};
     // 是否是大端
     constexpr inline auto is_big_endian{std::endian::native == std::endian::big};
-    // 是否支持__int128扩展
-    constexpr inline auto support_int128{
+
 #ifdef __SIZEOF_INT128__
-        true
+    /**
+     * @brief 原生的int128类型
+     *
+     * @note 若不支持__int128扩展则为void
+     */
+    using native_int128 = __int128_t;
+    /**
+     * @brief 原生的uint128类型
+     *
+     * @note 若不支持__int128扩展则为void
+     */
+    using native_uint128 = __uint128_t;
 #else
-        false
+    /**
+     * @brief 原生的int128类型
+     *
+     * @note 若不支持__int128扩展则为void
+     */
+    using native_int128 = void;
+    /**
+     * @brief 原生的uint128类型
+     *
+     * @note 若不支持__int128扩展则为void
+     */
+    using native_uint128 = void;
 #endif
-    };
+    // 是否支持__int128扩展
+    constexpr inline auto support_int128{!std::is_void_v<native_int128>};
+    // 判断给定类型是否是原生的int128类型
+    template <typename type>
+    concept is_native_int128 = support_int128 && std::same_as<type, native_int128>;
+    // 判断给定类型是否是原生的uint128类型
+    template <typename type>
+    concept is_native_uint128 = support_int128 && std::same_as<type, native_uint128>;
+
+#ifdef __SIZEOF_FLOAT128__
+    /**
+     * @brief 原生的float128类型
+     *
+     * @note 若不支持__float128扩展则为void
+     */
+    using native_float128 = __float128;
+#else
+    /**
+     * @brief 原生的float128类型
+     *
+     * @note 若不支持__float128扩展则为void
+     */
+    using native_float128 = void;
+#endif
+    // 是否支持__float128扩展
+    constexpr inline auto support_float128{!std::is_void_v<native_float128>};
+    // 判断给定类型是否是原生的float128类型
+    template <typename type>
+    concept is_native_float128 = support_float128 && std::same_as<type, native_float128>;
 }  // namespace cppfastbox
