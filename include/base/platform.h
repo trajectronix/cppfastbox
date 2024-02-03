@@ -206,7 +206,10 @@ namespace cppfastbox
     template <std::size_t leaf>
     constexpr inline auto get_native_compiler_name{
         compiler_name[leaf * std::to_underlying(compiler::compiler_num) + std::to_underlying(compiler::native)]};
+}  // namespace cppfastbox
 
+namespace cppfastbox
+{
     // 是否是32位cpu
     constexpr inline auto is_32bit{sizeof(std::size_t) == 4};
     // 是否是64位cpu
@@ -272,4 +275,38 @@ namespace cppfastbox
     // 判断给定类型是否是原生的float128类型
     template <typename type>
     concept is_native_float128 = support_float128 && std::same_as<type, native_float128_t>;
+}  // namespace cppfastbox
+
+namespace cppfastbox
+{
+#if defined(DEBUG) || defined(_DEBUG)
+    /**
+     * @brief 判断是否以debug模式编译
+     *
+     * @note 这可能会启用一些利于调试的代码
+     */
+    constexpr inline auto is_debug{true};
+#else
+    /**
+     * @brief 判断是否以debug模式编译
+     *
+     * @note 这可能会启用一些利于调试的代码
+     */
+    constexpr inline auto is_debug{false};
+#endif
+#ifdef NDEBUG
+    /**
+     * @brief 判断是否以release模式编译
+     *
+     * @note 这会禁用断言等功能
+     */
+    constexpr inline auto is_release{true};
+#else
+    /**
+     * @brief 判断是否以release模式编译
+     *
+     * @note 这会禁用断言等功能
+     */
+    constexpr inline auto is_release{false};
+#endif
 }  // namespace cppfastbox
