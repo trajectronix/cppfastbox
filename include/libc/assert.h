@@ -10,7 +10,6 @@
 #include <utility>
 #if __has_include(<cstdio>)
     #include <cstdio>
-    #define CPPFASTBOX_ASSERT_WITH_MESSAGE
 #endif
 #include "../base/assert.h"
 // 实现itoa后替换此处
@@ -24,7 +23,7 @@ namespace cppfastbox
 #if __has_include(<cstdio>)
         [[noreturn]] inline void assert_failed(const char* file, unsigned line, unsigned colum, const char* function) noexcept
         {
-            fwrite("Assert failed: In ", 1, 18, stderr);
+            fwrite("Assert failed: In file ", 1, 23, stderr);
             fwrite(file, 1, __builtin_strlen(file), stderr);
             fwrite(" ", 1, 1, stderr);
             char buf[32]{};
@@ -32,8 +31,10 @@ namespace cppfastbox
             *res++ = ':';
             res = std::to_chars(res, buf + 32, colum).ptr;
             __builtin_memcpy(res, " function: ", 11);
+            res += 11;
             fwrite(buf, 1, res - buf, stderr);
             fwrite(function, 1, __builtin_strlen(function), stderr);
+            fwrite("\n", 1, 1, stderr);
             fast_fail();
         }
 #else
