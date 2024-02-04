@@ -84,6 +84,12 @@ namespace cppfastbox
         constexpr inline auto is_contiguous_iterator_impl{false};
         template <typename type>
         constexpr inline auto is_contiguous_iterator_impl<contiguous_iterator<type>>{true};
+        template <typename type>
+        constexpr inline auto is_contiguous_iterator_impl<const contiguous_iterator<type>>{true};
+        template <typename type>
+        constexpr inline auto is_contiguous_iterator_impl<volatile contiguous_iterator<type>>{true};
+        template <typename type>
+        constexpr inline auto is_contiguous_iterator_impl<const volatile contiguous_iterator<type>>{true};
     }  // namespace detail
 
     /**
