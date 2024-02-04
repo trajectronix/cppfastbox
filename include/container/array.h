@@ -121,10 +121,6 @@ namespace cppfastbox
         using const_reference = const type&;
         using size_type = ::std::size_t;
         using difference_type = ::std::ptrdiff_t;
-        type array[0]{};
-
-        // 每维度上的元素个数
-        constexpr inline static size_type n_per_extent[0]{};
 
         [[nodiscard]] consteval inline static bool empty() noexcept { return true; }
 
@@ -134,8 +130,6 @@ namespace cppfastbox
 
         // 获取维度总数
         [[nodiscard]] consteval inline static size_type rank() noexcept { return 0; }
-        // 0维，维度上元素的个数恒为0
-        [[nodiscard]] inline static constexpr size_type extent(size_type) noexcept { return 0; }
 
         [[nodiscard]] constexpr inline auto data(this auto&& self) noexcept
         {
@@ -215,7 +209,131 @@ namespace cppfastbox
         [[nodiscard]] inline static constexpr size_type stride(size_type extentToInquire) noexcept
         {
             assert(extentToInquire < rank());
+            return 0zu;
+        }
+    };
+}  // namespace cppfastbox
+
+namespace cppfastbox::detail
+{
+    template <typename type_in, std::size_t n, std::size_t... next>
+    struct make_native_array_from_sequence_impl
+    {
+        using type = make_native_array_from_sequence_impl<type_in, next...>::type[n];
+    };
+
+    template <typename type_in, std::size_t n>
+    struct make_native_array_from_sequence_impl<type_in, n>
+    {
+        using type = type_in[n];
+    };
+
+    template <typename type_in, std::size_t... next>
+    using make_native_array_from_sequence = make_native_array_from_sequence_impl<type_in, next...>::type;
+
+    template <std::size_t n>
+    inline consteval auto get_stride_per_extent(const std::size_t (&n_per_extent)[n]) noexcept
+    {
+        array<std::size_t, n> stride_per_extent{};
+        for(auto i{0zu}; i < n; i++)
+        {
+            auto stride = 1zu;
+            for(auto j{i + 1}; j < n; j++) { stride *= n_per_extent[j]; }
+            stride_per_extent[i] = stride;
+        }
+        return stride_per_extent;
+    }
+
+    constexpr inline auto&& get_value_from_native_array(auto&& array, std::size_t index, auto... index_next) noexcept
+    {
+        constexpr auto extent{std::extent_v<std::remove_reference_t<decltype(array)>>};
+        cppfastbox::assert(index < extent);
+        if constexpr(sizeof...(index_next) == 0) { return array[index]; }
+        else { return get_value_from_native_array(array[index], index_next...); }
+    }
+}  // namespace cppfastbox::detail
+
+/**
+ * @brief 多维数组实现
+ *
+ */
+namespace cppfastbox
+{
+    template <typename type, ::std::size_t n, std::size_t... next>
+        requires (n != 0 && ((next != 0) && ...))
+    struct array<type, n, next...>
+    {
+        using value_type = std::remove_cv_t<type>;
+        using pointer = type*;
+        using const_pointer = const type*;
+        using reference = type&;
+        using const_reference = const type&;
+        using size_type = ::std::size_t;
+        using difference_type = ::std::ptrdiff_t;
+        using native_array_type = detail::make_native_array_from_sequence<type, n, next...>;
+        using sub_array_type = std::remove_extent_t<native_array_type>;
+        native_array_type array{};
+
+        // 获取维度总数
+        [[nodiscard]] consteval inline static size_type rank() noexcept { return sizeof...(next) + 1; }
+
+        // 每维度上的元素个数
+        constexpr inline static size_type n_per_extent[rank()]{n, next...};
+
+        constexpr inline static auto stride_per_extent{detail::get_stride_per_extent(n_per_extent)};
+
+        /**
+         * @brief 获取指定维度上元素的个数
+         *
+         * @param extentToInquire 要查询的维度，从0开始计数
+         */
+        [[nodiscard]] inline static constexpr size_type extent(size_type extentToInquire) noexcept
+        {
+            assert(extentToInquire < rank());
             return n_per_extent[extentToInquire];
         }
+
+        /**
+         * @brief 获取指定维度的步长
+         *
+         * @param extentToInquire 要查询的维度，从0开始计数
+         */
+        [[nodiscard]] inline static constexpr size_type stride(size_type extentToInquire) noexcept
+        {
+            assert(extentToInquire < rank());
+            return n_per_extent[extentToInquire];
+        }
+
+        [[nodiscard]] constexpr inline auto data(this auto&& self) noexcept { return self.array; }
+
+        [[nodiscard]] constexpr inline auto&& front(this auto&& self) noexcept { return self.array[0]; }
+
+        [[nodiscard]] constexpr inline auto&& back(this auto&& self) noexcept { return self.array[n - 1]; }
+
+        using iterator = contiguous_iterator<sub_array_type>;
+        using const_iterator = contiguous_iterator<const sub_array_type>;
+        using reverse_iterator = std::reverse_iterator<iterator>;
+        using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+
+        [[nodiscard]] constexpr inline auto&& operator[] (this auto&& self, std::size_t index, std::integral auto... index_next) noexcept
+        {
+            return detail::get_value_from_native_array(self.array, index, index_next...);
+        }
+
+        [[nodiscard]] constexpr inline auto begin(this auto&& self) noexcept { return contiguous_iterator{self.array}; }
+
+        [[nodiscard]] constexpr inline auto cbegin(this const auto& self) noexcept { return self.begin(); }
+
+        [[nodiscard]] constexpr inline auto end(this auto&& self) noexcept { return contiguous_iterator{self.array + n}; }
+
+        [[nodiscard]] constexpr inline auto cend(this const auto& self) noexcept { return self.end(); }
+
+        [[nodiscard]] constexpr inline auto rbegin(this auto&& self) noexcept { return std::reverse_iterator{self.end()}; }
+
+        [[nodiscard]] constexpr inline auto crbegin(this const auto& self) noexcept { return self.rbegin(); }
+
+        [[nodiscard]] constexpr inline auto rend(this auto&& self) noexcept { return std::reverse_iterator{self.begin()}; }
+
+        [[nodiscard]] constexpr inline auto crend(this const auto& self) noexcept { return self.rend(); }
     };
 }  // namespace cppfastbox
