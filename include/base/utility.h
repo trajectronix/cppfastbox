@@ -193,3 +193,18 @@ namespace cppfastbox
      */
     using int128_t = std::conditional_t<support_int128, detail::int128_t_impl, void>;
 }  // namespace cppfastbox
+
+namespace cppfastbox
+{
+    /**
+     * @brief 根据cond选择move或forward
+     *
+     * @tparam cond 为true则move，为false则forward
+     */
+    template <bool cond, typename type>
+    constexpr inline auto cmove(type&& v) noexcept
+    {
+        if constexpr(cond) { return std::move(v); }
+        else { return std::forward<type>(v); }
+    }
+}  // namespace cppfastbox
