@@ -337,3 +337,81 @@ namespace cppfastbox
         [[nodiscard]] constexpr inline auto crend(this const auto& self) noexcept { return self.rend(); }
     };
 }  // namespace cppfastbox
+
+namespace cppfastbox::detail
+{
+    /**
+     * @brief 从原生数组中获取array类型
+     *
+     * @tparam native_array 原生数组类型
+     * @tparam value_type 原生数组的元素类型
+     * @tparam n 每维度元素数
+     */
+    template <typename native_array, typename value_type, std::size_t... n>
+    struct make_array_from_native_impl
+    {
+        using next = std::remove_extent_t<native_array>;
+        using type = make_array_from_native_impl<std::conditional_t<std::rank_v<native_array> != 1, next, void>,
+                                                 next,  //< 最后一维时此处为原生数组的元素类型
+                                                 n...,
+                                                 std::extent_v<native_array>>::type;
+    };
+
+    template <typename value_type, std::size_t... n>
+    struct make_array_from_native_impl<void, value_type, n...>
+    {
+        using type = array<std::remove_cv_t<value_type>, n...>;
+    };
+
+    template <typename native_array>
+    using make_array_from_native = make_array_from_native_impl<native_array, void>::type;
+
+    /**
+     * @brief 在编译期拷贝原生数组
+     *
+     * @param to 目标数组
+     * @param from 原数组
+     */
+    template <typename type>
+    consteval inline void copy_native_array(type&& to, type&& from) noexcept
+    {
+        using array_type = std::remove_reference_t<type>;
+        constexpr auto extent{std::extent_v<array_type>};
+        for(auto i{0zu}; i < extent; i++)
+        {
+            if constexpr(std::rank_v<array_type> == 1) { to[i] = from[i]; }
+            else { copy_native_array(to[i], from[i]); }
+        }
+    }
+}  // namespace cppfastbox::detail
+
+namespace cppfastbox
+{
+    /**
+     * @brief 拷贝原生数组
+     *
+     * @param to 目标数组
+     * @param from 原数组
+     */
+    template <typename type>
+        requires (std::is_bounded_array_v<std::remove_reference_t<type>>)
+    constexpr inline void copy_native_array(type&& to, type&& from) noexcept
+    {
+        if consteval { detail::copy_native_array(to, from); }
+        else { __builtin_memcpy(std::addressof(to), std::addressof(from), sizeof(to)); }
+    }
+
+    /**
+     * @brief 从原生数组中构造array类型
+     *
+     */
+    template <typename type>
+        requires (std::is_bounded_array_v<std::remove_reference_t<type>>)
+    [[nodiscard]] constexpr inline auto make_array(type&& native_array) noexcept
+    {
+        using array_type = detail::make_array_from_native<std::remove_reference_t<type>>;
+        array_type array{};
+        copy_native_array(array.array, native_array);
+        return array;
+    }
+}  // namespace cppfastbox
