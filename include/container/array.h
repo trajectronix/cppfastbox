@@ -6,7 +6,7 @@
  *
  */
 #pragma once
-#include "iterator.h"
+#include <iterator>
 #include "../libc/assert.h"
 #include "../base/utility.h"
 
@@ -79,16 +79,16 @@ namespace cppfastbox
             return cmove<std::is_rvalue_reference_v<decltype(self)>>(self.array[index]);
         }
 
-        using iterator = contiguous_iterator<type>;
-        using const_iterator = contiguous_iterator<const type>;
+        using iterator = pointer;
+        using const_iterator = const_pointer;
         using reverse_iterator = std::reverse_iterator<iterator>;
         using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
-        [[nodiscard]] constexpr inline auto begin(this auto&& self) noexcept { return contiguous_iterator{self.array}; }
+        [[nodiscard]] constexpr inline auto begin(this auto&& self) noexcept { return self.array; }
 
         [[nodiscard]] constexpr inline auto cbegin(this const auto& self) noexcept { return self.begin(); }
 
-        [[nodiscard]] constexpr inline auto end(this auto&& self) noexcept { return contiguous_iterator{self.array + n}; }
+        [[nodiscard]] constexpr inline auto end(this auto&& self) noexcept { return self.array + n; }
 
         [[nodiscard]] constexpr inline auto cend(this const auto& self) noexcept { return self.end(); }
 
@@ -138,8 +138,8 @@ namespace cppfastbox
             return std::conditional_t<std::is_const_v<decltype(self)>, const_pointer, pointer>{};
         }
 
-        using iterator = contiguous_iterator<type>;
-        using const_iterator = contiguous_iterator<const type>;
+        using iterator = pointer;
+        using const_iterator = const_pointer;
         using reverse_iterator = std::reverse_iterator<iterator>;
         using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
@@ -181,8 +181,8 @@ namespace cppfastbox
         using const_reference = const type&;
         using size_type = ::std::size_t;
         using difference_type = ::std::ptrdiff_t;
-        using iterator = contiguous_iterator<type>;
-        using const_iterator = contiguous_iterator<const type>;
+        using iterator = pointer;
+        using const_iterator = const_pointer;
         using reverse_iterator = std::reverse_iterator<iterator>;
         using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
@@ -313,8 +313,8 @@ namespace cppfastbox
 
         [[nodiscard]] constexpr inline auto&& back(this auto&& self) noexcept { return self.array[n - 1]; }
 
-        using iterator = contiguous_iterator<sub_array_type>;
-        using const_iterator = contiguous_iterator<const sub_array_type>;
+        using iterator = sub_array_type;
+        using const_iterator = const sub_array_type;
         using reverse_iterator = std::reverse_iterator<iterator>;
         using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
@@ -323,11 +323,11 @@ namespace cppfastbox
             return detail::get_value_from_native_array(cmove<std::is_rvalue_reference_v<decltype(self)>>(self.array), index, index_next...);
         }
 
-        [[nodiscard]] constexpr inline auto begin(this auto&& self) noexcept { return contiguous_iterator{self.array}; }
+        [[nodiscard]] constexpr inline auto begin(this auto&& self) noexcept { return self.array; }
 
         [[nodiscard]] constexpr inline auto cbegin(this const auto& self) noexcept { return self.begin(); }
 
-        [[nodiscard]] constexpr inline auto end(this auto&& self) noexcept { return contiguous_iterator{self.array + n}; }
+        [[nodiscard]] constexpr inline auto end(this auto&& self) noexcept { return self.array + n; }
 
         [[nodiscard]] constexpr inline auto cend(this const auto& self) noexcept { return self.end(); }
 
