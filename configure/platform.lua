@@ -32,3 +32,35 @@ option("coroutines")
         end
     end)
 option_end()
+
+option("check_platform")
+    set_showmenu(false)
+    on_check(function (option)
+        if not has_config("toolchain") then
+            raise("${color.failure}The option \"toolchain\" should be set.")
+        end
+        if get_config("kind") == "binary" then
+            raise("${color.failure}The option \"kind\" should be set to static or shared.")
+        end
+        local plat = get_config("plat")
+        if is_plat("cross") then
+            plat = get_config("target_os")
+            if plat == nil then
+                raise("${color.failure}The option \"target_os\" should be set to the target os or platform.")
+            end
+        end
+        local is_cross_compile = ""
+        if string.lower(plat) ~= string.lower(get_config("host")) then
+            is_cross_compile = "${color.success}yes"
+        else
+            is_cross_compile = "${color.failure}no"
+        end
+        cprint("checking for cross compile ... "..is_cross_compile)
+        option:enable(true)
+    end)
+option_end()
+option("style")
+    set_default("gnu")
+    set_values("gnu", "msvc")
+    set_description("Set the style of toolchain")
+option_end()

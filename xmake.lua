@@ -9,10 +9,6 @@ add_options("march", "mtune", "coroutines")
 set_policy("build.warning", true)
 add_includedirs("third-party/fast_io/include")
 
-if get_config("kind") == "binary" then
-    raise("${color.failure}Please set the --kind option to static or shared.")
-end
-
 rule("debug")
     on_load(function (target)
         target:set("symbols", "debug")
