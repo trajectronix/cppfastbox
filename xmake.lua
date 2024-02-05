@@ -9,6 +9,10 @@ add_options("march", "mtune", "coroutines")
 set_policy("build.warning", true)
 add_includedirs("third-party/fast_io/include")
 
+if get_config("kind") == "binary" then
+    raise("${color.failure}Please set the --kind option to static or shared.")
+end
+
 rule("debug")
     on_load(function (target)
         target:set("symbols", "debug")
@@ -40,3 +44,8 @@ rule("releasedbg")
     end)
 rule_end()
 add_rules(get_config("mode"))
+
+target("libc")
+    add_deps("libc-header", "libc-lib")
+    set_kind("phony")
+target_end()
