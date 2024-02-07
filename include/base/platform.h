@@ -65,6 +65,8 @@
 
 // 无操作
 #define CPPFASTBOX_NOP void(nullptr)
+// 恒内联函数
+#define CPPFASTBOX_ALWAYS_INLINE [[using gnu: always_inline, artificial]]
 
 namespace cppfastbox
 {

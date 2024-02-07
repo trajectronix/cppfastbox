@@ -330,14 +330,13 @@ namespace cppfastbox::detail
     {
         consteval inline get_value_from_native_array_impl(::std::index_sequence<index...>, type&) noexcept {};
 
-        inline static auto&& get_value_from_native_array(auto array, auto... index_in) noexcept
+        /**
+         * @brief 运行时计算多维数组的偏移量，使用折叠表达式而不是递归
+         *
+         */
+        CPPFASTBOX_ALWAYS_INLINE inline static auto&& get_index_for_native_array(auto... index_in) noexcept
         {
-            constexpr auto is_const{::std::is_const_v<type>};
-            using array_type =
-                ::std::conditional_t<is_const, ::std::add_const_t<typename type::native_array_type>, typename type::native_array_type>;
-            using pointer = ::cppfastbox::detail::remove_extent_to_pointer_t<array_type, sizeof...(index)>;
-            auto offset{((index_in * type::stride_per_extent[index]) + ...)};
-            return *reinterpret_cast<pointer>(array + offset);
+            return ((index_in * type::stride_per_extent[index]) + ...);
         }
     };
 
@@ -467,7 +466,8 @@ namespace cppfastbox
         using reverse_iterator = ::std::reverse_iterator<iterator>;
         using const_reverse_iterator = ::std::reverse_iterator<const_iterator>;
 
-        [[nodiscard]] constexpr inline auto&& operator[] (this auto&& self, ::std::size_t index, ::std::integral auto... index_next) noexcept
+        CPPFASTBOX_ALWAYS_INLINE [[nodiscard]] constexpr inline auto&&
+            operator[] (this auto&& self, ::std::size_t index, ::std::integral auto... index_next) noexcept
         {
             static_assert(sizeof...(index_next) + 1 <= rank(), "The number of dereferencings cannot exceed the array dimension.");
             using array_type = ::std::remove_reference_t<decltype(self)>;
@@ -483,8 +483,10 @@ namespace cppfastbox
                                                                                     self});
                 constexpr auto is_const{::std::is_const_v<array_type>};
                 using ptr = ::std::conditional_t<is_const, const_pointer, pointer>;
-                return ::cppfastbox::cmove<is_rvalue>(
-                    helper::get_value_from_native_array(reinterpret_cast<ptr>(self.array), index, static_cast<::std::size_t>(index_next)...));
+                using array_type = ::std::conditional_t<is_const, ::std::add_const_t<native_array_type>, native_array_type>;
+                using result = ::cppfastbox::detail::remove_extent_to_pointer_t<array_type, 1 + sizeof...(index_next)>;
+                auto offset{helper::get_index_for_native_array(index, static_cast<::std::size_t>(index_next)...)};
+                return ::cppfastbox::cmove<is_rvalue>(*reinterpret_cast<result>(reinterpret_cast<ptr>(self.array) + offset));
             }
         }
 
@@ -621,9 +623,10 @@ namespace cppfastbox
     template <typename type>
     [[nodiscard]] constexpr inline auto make_array(type&& native_array) noexcept
     {
-        static_assert(::std::is_bounded_array_v<::std::remove_reference_t<type>>, "The function argument should be a native array.");
-        using array_type = ::cppfastbox::detail::make_array_from_native<::std::remove_reference_t<type>>;
-        array_type array{};
+        using array_type = ::std::remove_reference_t<type>;
+        static_assert(::std::is_bounded_array_v<array_type>, "The function argument should be a native array.");
+        using my_array = ::cppfastbox::detail::make_array_from_native<array_type>;
+        my_array array{};
         ::cppfastbox::copy_native_array(array.array, native_array);
         return array;
     }
@@ -632,15 +635,10 @@ namespace cppfastbox
 namespace cppfastbox::detail
 {
     template <typename type>
-    constexpr inline auto is_array_impl{false};
+    constexpr inline bool is_array_impl{
+        ::std::same_as<type, ::std::remove_cv_t<type>> ? false : ::cppfastbox::detail::is_array_impl<::std::remove_cv_t<type>>};
     template <typename type, ::std::size_t... n>
-    constexpr inline auto is_array_impl<::cppfastbox::array<type, n...>>{true};
-    template <typename type, ::std::size_t... n>
-    constexpr inline auto is_array_impl<const ::cppfastbox::array<type, n...>>{true};
-    template <typename type, ::std::size_t... n>
-    constexpr inline auto is_array_impl<volatile ::cppfastbox::array<type, n...>>{true};
-    template <typename type, ::std::size_t... n>
-    constexpr inline auto is_array_impl<const volatile ::cppfastbox::array<type, n...>>{true};
+    constexpr inline bool is_array_impl<::cppfastbox::array<type, n...>>{true};
 }  // namespace cppfastbox::detail
 
 namespace cppfastbox
@@ -650,7 +648,7 @@ namespace cppfastbox
      *
      */
     template <typename type>
-    concept is_array = detail::is_array_impl<type>;
+    concept is_array = ::cppfastbox::detail::is_array_impl<type>;
 
     template <::std::size_t index, typename type>
         requires (::cppfastbox::is_array<::std::remove_reference_t<type>>)
@@ -663,7 +661,7 @@ namespace cppfastbox
 
 namespace std
 {
-    template <size_t index, typename type_in, ::std::size_t n, ::std::size_t... next>
+    template <::std::size_t index, typename type_in, ::std::size_t n, ::std::size_t... next>
     struct tuple_element<index, ::cppfastbox::array<type_in, n, next...>>
     {
         static_assert(n != 0 && ((next != 0) && ...), "The array must be non-empty.");
