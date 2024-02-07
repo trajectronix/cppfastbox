@@ -91,7 +91,7 @@ namespace cppfastbox
         native = macos
 #elifdef CPPFASTBOX_ANDROID
         native = android
-#else CPPFASTBOX_WASM
+#elifdef CPPFASTBOX_WASM
         native = wasm
 #endif
     };
