@@ -69,7 +69,7 @@
 namespace cppfastbox
 {
     // 当前平台的操作系统
-    enum class operating_system : std::size_t
+    enum class operating_system : ::std::size_t
     {
         freestanding,
         windows,
@@ -115,19 +115,19 @@ namespace cppfastbox
      *
      * @tparam os 系统枚举
      */
-    template <operating_system os>
-    constexpr inline auto is_os{operating_system::native == os};
+    template <::cppfastbox::operating_system os>
+    constexpr inline auto is_os{::cppfastbox::operating_system::native == os};
     /**
      * @brief 获取当前系统名称
      *
      * @tparam leaf 页数
      */
-    template <std::size_t leaf>
-    constexpr inline auto get_native_os_name{
-        operating_system_name[leaf * std::to_underlying(operating_system::os_num) + std::to_underlying(operating_system::native)]};
+    template <::std::size_t leaf>
+    constexpr inline auto get_native_os_name{::cppfastbox::operating_system_name[leaf * ::std::to_underlying(::cppfastbox::operating_system::os_num) +
+                                                                               ::std::to_underlying(::cppfastbox::operating_system::native)]};
 
     // 当前cpu架构
-    enum class cpu_arch : std::size_t
+    enum class cpu_arch : ::std::size_t
     {
         x86,
         x64,
@@ -166,19 +166,19 @@ namespace cppfastbox
      *
      * @tparam arch cpu枚举
      */
-    template <cpu_arch arch>
-    constexpr inline auto is_arch{cpu_arch::native == arch};
+    template <::cppfastbox::cpu_arch arch>
+    constexpr inline auto is_arch{::cppfastbox::cpu_arch::native == arch};
     /**
      * @brief 获取当前cpu名称
      *
      * @tparam leaf 页数
      */
-    template <std::size_t leaf>
+    template <::std::size_t leaf>
     constexpr inline auto get_native_arch_name{
-        cpu_arch_name[leaf * std::to_underlying(cpu_arch::arch_num) + std::to_underlying(cpu_arch::native)]};
+        cpu_arch_name[leaf * ::std::to_underlying(::cppfastbox::cpu_arch::arch_num) + ::std::to_underlying(::cppfastbox::cpu_arch::native)]};
 
     // 当前编译器
-    enum class compiler : std::size_t
+    enum class compiler : ::std::size_t
     {
         clang,
         gcc,
@@ -196,28 +196,28 @@ namespace cppfastbox
      *
      * @tparam compiler 编译器枚举
      */
-    template <compiler compiler>
-    constexpr inline auto is_compiler{compiler::native == compiler};
+    template <::cppfastbox::compiler compiler>
+    constexpr inline auto is_compiler{::cppfastbox::compiler::native == compiler};
     /**
      * @brief 获取当前编译器名称
      *
      * @tparam leaf 页数
      */
-    template <std::size_t leaf>
+    template <::std::size_t leaf>
     constexpr inline auto get_native_compiler_name{
-        compiler_name[leaf * std::to_underlying(compiler::compiler_num) + std::to_underlying(compiler::native)]};
+        compiler_name[leaf * ::std::to_underlying(::cppfastbox::compiler::compiler_num) + ::std::to_underlying(::cppfastbox::compiler::native)]};
 }  // namespace cppfastbox
 
 namespace cppfastbox
 {
     // 是否是32位cpu
-    constexpr inline auto is_32bit{sizeof(std::size_t) == 4};
+    constexpr inline auto is_32bit{sizeof(::std::size_t) == 4};
     // 是否是64位cpu
-    constexpr inline auto is_64bit{sizeof(std::size_t) == 8};
+    constexpr inline auto is_64bit{sizeof(::std::size_t) == 8};
     // 是否是小端
-    constexpr inline auto is_little_endian{std::endian::native == std::endian::little};
+    constexpr inline auto is_little_endian{::std::endian::native == ::std::endian::little};
     // 是否是大端
-    constexpr inline auto is_big_endian{std::endian::native == std::endian::big};
+    constexpr inline auto is_big_endian{::std::endian::native == ::std::endian::big};
 
 #ifdef __SIZEOF_INT128__
     /**
@@ -247,13 +247,13 @@ namespace cppfastbox
     using native_uint128_t = void;
 #endif
     // 是否支持__int128扩展
-    constexpr inline auto support_int128{!std::is_void_v<native_int128_t>};
+    constexpr inline auto support_int128{!::std::is_void_v<native_int128_t>};
     // 判断给定类型是否是原生的int128类型
     template <typename type>
-    concept is_native_int128 = support_int128 && std::same_as<type, native_int128_t>;
+    concept is_native_int128 = ::cppfastbox::support_int128 && ::std::same_as<type, native_int128_t>;
     // 判断给定类型是否是原生的uint128类型
     template <typename type>
-    concept is_native_uint128 = support_int128 && std::same_as<type, native_uint128_t>;
+    concept is_native_uint128 = ::cppfastbox::support_int128 && ::std::same_as<type, native_uint128_t>;
 
 #ifdef __SIZEOF_FLOAT128__
     /**
@@ -271,10 +271,10 @@ namespace cppfastbox
     using native_float128_t = void;
 #endif
     // 是否支持__float128扩展
-    constexpr inline auto support_float128{!std::is_void_v<native_float128_t>};
+    constexpr inline auto support_float128{!::std::is_void_v<native_float128_t>};
     // 判断给定类型是否是原生的float128类型
     template <typename type>
-    concept is_native_float128 = support_float128 && std::same_as<type, native_float128_t>;
+    concept is_native_float128 = ::cppfastbox::support_float128 && ::std::same_as<type, native_float128_t>;
 }  // namespace cppfastbox
 
 namespace cppfastbox
