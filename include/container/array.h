@@ -8,7 +8,7 @@
 #pragma once
 #include <iterator>
 #include "../libc/assert.h"
-#include "../base/utility.h"
+#include "algorithm.h"
 
 /**
  * @brief 一维数组实现
@@ -99,12 +99,46 @@ namespace cppfastbox
         [[nodiscard]] constexpr inline auto rend(this auto&& self) noexcept { return ::std::reverse_iterator{self.begin()}; }
 
         [[nodiscard]] constexpr inline auto crend(this const auto& self) noexcept { return self.rend(); }
+
+        [[nodiscard]] friend constexpr inline auto operator== (const struct array& a, const struct array& b) noexcept
+        {
+            if !consteval
+            {
+                if constexpr(::cppfastbox::trivially_equality_comparable<value_type>)
+                {
+                    return __builtin_memcmp(::std::addressof(a), ::std::addressof(b), size()) == 0;
+                }
+            }
+            for(auto i{0zu}; i < size(); i++)
+            {
+                if(a[i] != b[i]) { return false; }
+            }
+            return true;
+        }
+
+        [[nodiscard]] friend constexpr inline auto operator<=> (const struct array& a, const struct array& b) noexcept
+        {
+            using result_type = ::std::compare_three_way_result_t<type>;
+            if !consteval
+            {
+                if constexpr(::cppfastbox::trivially_three_way_comparable<value_type>)
+                {
+                    return result_type{__builtin_memcmp(::std::addressof(a), ::std::addressof(b), size()) <=> 0};
+                }
+            }
+            for(auto i{0zu}; i < size(); i++)
+            {
+                auto result{a[i] <=> b[i]};
+                if(result != 0) { return result; }
+            }
+            return result_type::equivalent;
+        }
     };
 
     // 一维数组推导指引
     template <typename type, typename... next>
         requires (::std::same_as<type, next> && ...)
-    array(type, next...) -> ::cppfastbox::array<type, 1 + sizeof...(next)>;
+    array(type, next...)->::cppfastbox::array<type, 1 + sizeof...(next)>;
 }  // namespace cppfastbox
 
 /**
@@ -168,6 +202,10 @@ namespace cppfastbox
         }
 
         [[nodiscard]] constexpr inline auto crend(this const auto& self) noexcept { return self.end(); }
+
+        [[nodiscard]] friend constexpr inline auto operator== (const array&, const array&) noexcept { return true; }
+
+        [[nodiscard]] friend constexpr inline auto operator<=> (const array&, const array&) noexcept { return ::std::strong_ordering::equal; }
     };
 
     template <typename type, ::std::size_t n, ::std::size_t... next>
@@ -246,13 +284,118 @@ namespace cppfastbox::detail
         return stride_per_extent;
     }
 
+    /**
+     * @brief 编译时从多维原生数组中获取值
+     *
+     * @param array 原生数组
+     * @param index 索引
+     * @param index_next 索引
+     */
     constexpr inline auto&& get_value_from_native_array(auto&& array, ::std::size_t index, auto... index_next) noexcept
     {
         constexpr auto extent{::std::extent_v<::std::remove_reference_t<decltype(array)>>};
         constexpr auto is_rvalue{::std::is_rvalue_reference_v<decltype(array)>};
         ::cppfastbox::assert(index < extent);
-        if constexpr(sizeof...(index_next) == 0) { return cmove<is_rvalue>(array[index]); }
-        else { return get_value_from_native_array(cmove<is_rvalue>(array[index]), index_next...); }
+        if constexpr(sizeof...(index_next) == 0) { return ::cppfastbox::cmove<is_rvalue>(array[index]); }
+        else { return ::cppfastbox::detail::get_value_from_native_array(::cppfastbox::cmove<is_rvalue>(array[index]), index_next...); }
+    }
+
+    template <typename type_in, ::std::size_t n>
+    struct remove_extent_to_pointer
+    {
+        using type = ::cppfastbox::detail::remove_extent_to_pointer<::std::remove_extent_t<type_in>, n - 1>::type;
+    };
+
+    template <typename type_in>
+    struct remove_extent_to_pointer<type_in, 0>
+    {
+        using type = ::std::conditional_t<::std::is_bounded_array_v<type_in>, ::std::decay_t<type_in>, ::std::add_pointer_t<type_in>>;
+    };
+
+    /**
+     * @brief 从原生数组上移除指定层数的数组，并返回指针
+     *
+     * @code {.cpp}
+     * remove_extent_to_pointer_t<int[1][1][1], 1> == int*[1]
+     * @endcode
+     *
+     * @tparam type 原生数组类型
+     * @tparam n 要去除的数组层数
+     */
+    template <typename type, ::std::size_t n>
+    using remove_extent_to_pointer_t = ::cppfastbox::detail::remove_extent_to_pointer<type, n>::type;
+
+    template <typename type, ::std::size_t... index>
+    struct get_value_from_native_array_impl
+    {
+        consteval inline get_value_from_native_array_impl(::std::index_sequence<index...>, type&) noexcept {};
+
+        inline static auto&& get_value_from_native_array(auto array, auto... index_in) noexcept
+        {
+            constexpr auto is_const{::std::is_const_v<type>};
+            using array_type =
+                ::std::conditional_t<is_const, ::std::add_const_t<typename type::native_array_type>, typename type::native_array_type>;
+            using pointer = ::cppfastbox::detail::remove_extent_to_pointer_t<array_type, sizeof...(index)>;
+            auto offset{((index_in * type::stride_per_extent[index]) + ...)};
+            return *reinterpret_cast<pointer>(array + offset);
+        }
+    };
+
+    /**
+     * @brief 在编译时获取两个原生多维数组相等比较的结果
+     *
+     */
+    constexpr auto equality_compare_native_array(const auto& a, const auto& b) noexcept
+    {
+        using array_type = ::std::remove_reference_t<decltype(a)>;
+        constexpr auto extent{::std::extent_v<array_type>};
+        constexpr auto rank{::std::rank_v<array_type>};
+        if constexpr(rank == 1)
+        {
+            for(auto i{0zu}; i < extent; i++)
+            {
+                if(a[i] != b[i]) { return false; }
+            }
+            return true;
+        }
+        else
+        {
+            for(auto i{0zu}; i < extent; i++)
+            {
+                if(!::cppfastbox::detail::equality_compare_native_array(a[i], b[i])) { return false; }
+            }
+            return true;
+        }
+    }
+
+    /**
+     * @brief 在编译时获取两个原生多维数组三路比较的结果
+     *
+     */
+    constexpr auto three_compare_native_array(const auto& a, const auto& b) noexcept
+    {
+        using array_type = ::std::remove_reference_t<decltype(a)>;
+        constexpr auto extent{::std::extent_v<array_type>};
+        constexpr auto rank{::std::rank_v<array_type>};
+        using result_type = ::std::compare_three_way_result_t<::std::remove_all_extents_t<array_type>>;
+        if constexpr(rank == 1)
+        {
+            for(auto i{0zu}; i < extent; i++)
+            {
+                auto result{a[i] <=> b[i]};
+                if(result != 0) { return result; }
+            }
+            return result_type::equivalent;
+        }
+        else
+        {
+            for(auto i{0zu}; i < extent; i++)
+            {
+                auto result{::cppfastbox::detail::three_compare_native_array(a[i], b[i])};
+                if(result != 0) { return result; }
+            }
+            return result_type::equivalent;
+        }
     }
 }  // namespace cppfastbox::detail
 
@@ -276,6 +419,12 @@ namespace cppfastbox
         using native_array_type = detail::make_native_array_from_sequence<type, n, next...>;
         using sub_array_type = ::std::remove_extent_t<native_array_type>;
         native_array_type array{};
+
+        [[nodiscard]] consteval inline static bool empty() noexcept { return false; }
+
+        [[nodiscard]] consteval inline static size_type size() noexcept { return n * ((next) * ...); }
+
+        [[nodiscard]] consteval inline static size_type maxSize() noexcept { return size(); }
 
         // 获取维度总数
         [[nodiscard]] consteval inline static size_type rank() noexcept { return sizeof...(next) + 1; }
@@ -320,7 +469,23 @@ namespace cppfastbox
 
         [[nodiscard]] constexpr inline auto&& operator[] (this auto&& self, ::std::size_t index, ::std::integral auto... index_next) noexcept
         {
-            return detail::get_value_from_native_array(cmove<::std::is_rvalue_reference_v<decltype(self)>>(self.array), index, index_next...);
+            static_assert(sizeof...(index_next) + 1 <= rank(), "The number of dereferencings cannot exceed the array dimension.");
+            using array_type = ::std::remove_reference_t<decltype(self)>;
+            constexpr auto is_rvalue{::std::is_rvalue_reference_v<array_type>};
+            if consteval
+            {
+                return ::cppfastbox::detail::get_value_from_native_array(::cppfastbox::cmove<is_rvalue>(self.array), index, index_next...);
+            }
+            else
+            {
+                using helper =
+                    decltype(::cppfastbox::detail::get_value_from_native_array_impl{::std::make_index_sequence<1 + sizeof...(index_next)>{},
+                                                                                    self});
+                constexpr auto is_const{::std::is_const_v<array_type>};
+                using ptr = ::std::conditional_t<is_const, const_pointer, pointer>;
+                return ::cppfastbox::cmove<is_rvalue>(
+                    helper::get_value_from_native_array(reinterpret_cast<ptr>(self.array), index, static_cast<::std::size_t>(index_next)...));
+            }
         }
 
         [[nodiscard]] constexpr inline auto begin(this auto&& self) noexcept { return self.array; }
@@ -338,6 +503,51 @@ namespace cppfastbox
         [[nodiscard]] constexpr inline auto rend(this auto&& self) noexcept { return ::std::reverse_iterator{self.begin()}; }
 
         [[nodiscard]] constexpr inline auto crend(this const auto& self) noexcept { return self.rend(); }
+
+        [[nodiscard]] friend constexpr inline auto operator== (const struct array& a, const struct array& b) noexcept
+        {
+            if !consteval
+            {
+                if constexpr(::cppfastbox::trivially_equality_comparable<value_type>)
+                {
+                    return __builtin_memcmp(::std::addressof(a), ::std::addressof(b), size()) == 0;
+                }
+                else
+                {
+                    auto p1{reinterpret_cast<const_pointer>(a.array)};
+                    auto p2{reinterpret_cast<const_pointer>(b.array)};
+                    for(auto i{0zu}; i < size(); i++)
+                    {
+                        if(p1[i] != p2[i]) { return false; }
+                    }
+                    return true;
+                }
+            }
+            else { return ::cppfastbox::detail::equality_compare_native_array(a.array, b.array); }
+        }
+
+        [[nodiscard]] friend constexpr inline auto operator<=> (const struct array& a, const struct array& b) noexcept
+        {
+            using result_type = ::std::compare_three_way_result_t<type>;
+            if !consteval
+            {
+                if constexpr(::cppfastbox::trivially_three_way_comparable<value_type>)
+                {
+                    return result_type{__builtin_memcmp(::std::addressof(a), ::std::addressof(b), size()) <=> 0};
+                }
+                else
+                {
+                    auto p1{reinterpret_cast<const_pointer>(a.array)};
+                    auto p2{reinterpret_cast<const_pointer>(b.array)};
+                    for(auto i{0zu}; i < size(); i++)
+                    {
+                        auto result{p1[i] <=> p2[i]};
+                        if(result != 0) { return result; }
+                    }
+                }
+            }
+            else { return ::cppfastbox::detail::three_compare_native_array(a.array, b.array); }
+        }
     };
 }  // namespace cppfastbox
 
