@@ -58,12 +58,12 @@ namespace cppfastbox
 
     // 由向量扩展使用的有符号整数类型
     template <typename type>
-    concept simd_signed_integral =
-        ::std::same_as<type, char> || ::std::same_as<type, short> || ::std::same_as<type, int> || ::std::same_as<type, long long>;
+    concept simd_signed_integral = ::std::same_as<type, ::cppfastbox::simd_int8_t> || ::std::same_as<type, ::cppfastbox::simd_int16_t> ||
+                                   ::std::same_as<type, ::cppfastbox::simd_int32_t> || ::std::same_as<type, ::cppfastbox::simd_int64_t>;
     // 由向量扩展使用的无符号整数类型
     template <typename type>
-    concept simd_unsigned_integral = ::std::same_as<type, unsigned char> || ::std::same_as<type, unsigned short> ||
-                                     ::std::same_as<type, unsigned int> || ::std::same_as<type, unsigned long long>;
+    concept simd_unsigned_integral = ::std::same_as<type, ::cppfastbox::simd_uint8_t> || ::std::same_as<type, ::cppfastbox::simd_uint16_t> ||
+                                   ::std::same_as<type, ::cppfastbox::simd_uint32_t> || ::std::same_as<type, ::cppfastbox::simd_uint64_t>;
     // 由向量使用的整数类型
     template <typename type>
     concept simd_integral = ::cppfastbox::simd_unsigned_integral<type> || ::cppfastbox::simd_signed_integral<type>;
