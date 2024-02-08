@@ -52,7 +52,7 @@ namespace cppfastbox
          */
         [[nodiscard]] inline static constexpr size_type extent(size_type extentToInquire) noexcept
         {
-            assert(extentToInquire < rank());
+            ::cppfastbox::assert(extentToInquire < rank());
             return n;
         }
 
@@ -63,7 +63,7 @@ namespace cppfastbox
          */
         [[nodiscard]] inline static constexpr size_type stride(size_type extentToInquire) noexcept
         {
-            assert(extentToInquire < rank());
+            ::cppfastbox::assert(extentToInquire < rank());
             return n;
         }
 
@@ -75,8 +75,8 @@ namespace cppfastbox
 
         [[nodiscard]] constexpr inline auto&& operator[] (this auto&& self, size_type index) noexcept
         {
-            assert(index < n);
-            return cmove<::std::is_rvalue_reference_v<decltype(self)>>(self.array[index]);
+            ::cppfastbox::assert(index < n);
+            return ::cppfastbox::cond_move_v<::std::is_rvalue_reference_v<decltype(self)>>(self.array[index]);
         }
 
         using iterator = pointer;
@@ -237,7 +237,7 @@ namespace cppfastbox
          */
         [[nodiscard]] inline static constexpr size_type extent(size_type extentToInquire) noexcept
         {
-            assert(extentToInquire < rank());
+            ::cppfastbox::assert(extentToInquire < rank());
             return n_per_extent[extentToInquire];
         }
 
@@ -248,7 +248,7 @@ namespace cppfastbox
          */
         [[nodiscard]] inline static constexpr size_type stride(size_type extentToInquire) noexcept
         {
-            assert(extentToInquire < rank());
+            ::cppfastbox::assert(extentToInquire < rank());
             return 0zu;
         }
     };
@@ -296,8 +296,8 @@ namespace cppfastbox::detail
         constexpr auto extent{::std::extent_v<::std::remove_reference_t<decltype(array)>>};
         constexpr auto is_rvalue{::std::is_rvalue_reference_v<decltype(array)>};
         ::cppfastbox::assert(index < extent);
-        if constexpr(sizeof...(index_next) == 0) { return ::cppfastbox::cmove<is_rvalue>(array[index]); }
-        else { return ::cppfastbox::detail::get_value_from_native_array(::cppfastbox::cmove<is_rvalue>(array[index]), index_next...); }
+        if constexpr(sizeof...(index_next) == 0) { return ::cppfastbox::cond_move_v<is_rvalue>(array[index]); }
+        else { return ::cppfastbox::detail::get_value_from_native_array(::cppfastbox::cond_move_v<is_rvalue>(array[index]), index_next...); }
     }
 
     template <typename type_in, ::std::size_t n>
@@ -440,7 +440,7 @@ namespace cppfastbox
          */
         [[nodiscard]] inline static constexpr size_type extent(size_type extentToInquire) noexcept
         {
-            assert(extentToInquire < rank());
+            ::cppfastbox::assert(extentToInquire < rank());
             return n_per_extent[extentToInquire];
         }
 
@@ -451,7 +451,7 @@ namespace cppfastbox
          */
         [[nodiscard]] inline static constexpr size_type stride(size_type extentToInquire) noexcept
         {
-            assert(extentToInquire < rank());
+            ::cppfastbox::assert(extentToInquire < rank());
             return n_per_extent[extentToInquire];
         }
 
@@ -474,7 +474,7 @@ namespace cppfastbox
             constexpr auto is_rvalue{::std::is_rvalue_reference_v<array_type>};
             if consteval
             {
-                return ::cppfastbox::detail::get_value_from_native_array(::cppfastbox::cmove<is_rvalue>(self.array), index, index_next...);
+                return ::cppfastbox::detail::get_value_from_native_array(::cppfastbox::cond_move_v<is_rvalue>(self.array), index, index_next...);
             }
             else
             {
@@ -486,7 +486,7 @@ namespace cppfastbox
                 using array_type = ::std::conditional_t<is_const, ::std::add_const_t<native_array_type>, native_array_type>;
                 using result = ::cppfastbox::detail::remove_extent_to_pointer_t<array_type, 1 + sizeof...(index_next)>;
                 auto offset{helper::get_index_for_native_array(index, static_cast<::std::size_t>(index_next)...)};
-                return ::cppfastbox::cmove<is_rvalue>(*reinterpret_cast<result>(reinterpret_cast<ptr>(self.array) + offset));
+                return ::cppfastbox::cond_move_v<is_rvalue>(*reinterpret_cast<result>(reinterpret_cast<ptr>(self.array) + offset));
             }
         }
 
@@ -635,10 +635,14 @@ namespace cppfastbox
 namespace cppfastbox::detail
 {
     template <typename type>
-    constexpr inline bool is_array_impl{
-        ::std::same_as<type, ::std::remove_cv_t<type>> ? false : ::cppfastbox::detail::is_array_impl<::std::remove_cv_t<type>>};
+    struct is_array_impl : ::cppfastbox::forward_without_cv_t<type, ::std::false_type, ::cppfastbox::detail::is_array_impl>
+    {
+    };
+
     template <typename type, ::std::size_t... n>
-    constexpr inline bool is_array_impl<::cppfastbox::array<type, n...>>{true};
+    struct is_array_impl<::cppfastbox::array<type, n...>> : ::std::true_type
+    {
+    };
 }  // namespace cppfastbox::detail
 
 namespace cppfastbox
@@ -648,7 +652,7 @@ namespace cppfastbox
      *
      */
     template <typename type>
-    concept is_array = ::cppfastbox::detail::is_array_impl<type>;
+    concept is_array = ::cppfastbox::detail::is_array_impl<type>::value;
 
     template <::std::size_t index, typename type>
         requires (::cppfastbox::is_array<::std::remove_reference_t<type>>)

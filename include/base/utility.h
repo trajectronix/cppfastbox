@@ -205,14 +205,147 @@ namespace cppfastbox
 namespace cppfastbox
 {
     /**
-     * @brief 根据cond选择move或forward
+     * @brief 根据`is_move`选择move或forward
+     * 等价于decltype(cond_move_v<is_move>(std::declval<type>()))
      *
-     * @tparam cond 为true则move，为false则forward
+     * @tparam is_move 为true则move，为false则forward
+     * @code {.cpp}
+     * cond_move_v<true, int> -> move, int&&
+     * cond_move_v<true, int&> -> move, int&&
+     * cond_move_v<true, int&&> -> move, int&&
+     * cond_move_v<false, int> -> forward, int&&
+     * cond_move_v<false, int&> -> forward, int&
+     * cond_move_v<false, int&&> -> forward, int&&
+     * @endcode
+     *
      */
-    template <bool cond, typename type>
-    constexpr inline auto&& cmove(type&& v) noexcept
+    template <bool is_move, typename type>
+    using cond_move_t = ::std::conditional_t<is_move,
+                                             ::std::add_rvalue_reference_t<type>,
+                                             ::std::conditional_t<::std::is_reference_v<type>, type, ::std::add_rvalue_reference_t<type>>>;
+
+    /**
+     * @brief 根据`is_move`选择move或forward
+     *
+     * @tparam is_move 为true则move，为false则forward
+     * @code {.cpp}
+     * cond_move_v<true, int> -> move, int&&
+     * cond_move_v<true, int&> -> move, int&&
+     * cond_move_v<false, int> -> forward, int&&
+     * cond_move_v<false, int&> -> forward, int&
+     * @endcode
+     *
+     */
+    template <bool is_move, typename type>
+    constexpr inline auto&& cond_move_v(type&& v) noexcept
     {
-        if constexpr(cond) { return ::std::move(v); }
+        if constexpr(is_move) { return ::std::move(v); }
         else { return ::std::forward<type>(v); }
     }
+
+    /**
+     * @brief 根据`is_rvalue`选择左值引用或右值引用
+     *
+     * @tparam is_rvalue 为true则为右值引用，为false则为左值引用
+     * @code {.cpp}
+     * cond_forward_v<true, int> -> int&&
+     * cond_forward_v<false, int> -> int&
+     * @endcode
+     *
+     */
+    template <bool is_rvalue, typename type>
+    using cond_forward_t = ::std::conditional_t<is_rvalue,
+                                                ::std::add_rvalue_reference_t<::std::remove_reference_t<type>>,
+                                                ::std::add_lvalue_reference_t<::std::remove_reference_t<type>>>;
+
+    /**
+     * @brief 根据`is_rvalue`选择左值引用或右值引用
+     *
+     * @tparam is_rvalue 为true则为右值引用，为false则为左值引用
+     * @code {.cpp}
+     * cond_forward_v<true, int> -> int&&
+     * cond_forward_v<false, int> -> int&
+     * @endcode
+     *
+     */
+    template <bool is_rvalue, typename type>
+    constexpr inline auto&& cond_forward_v(type&& v) noexcept
+    {
+        using reference = ::cppfastbox::cond_forward_t<is_rvalue, type>;
+        return static_cast<reference>(v);
+    }
+
+    /**
+     * @brief 移除const限定并转发
+     *
+     * @tparam type 输入类型
+     * @tparam default_type 输入类型不带有const限定时要返回的类型
+     * @tparam forward_type 输入类型带有const限定时要转发到的类型
+     * @code {.cpp}
+     * template<typename type>
+     * struct test_impl : forward_without_const_t<type, std::false_type, test_impl> {};
+     * template<typename type, std::size_t n>
+     * struct test_impl<type[n]> : std::true_type {};
+     * // 检测类型type是否是一维有界数组
+     * // int[n] -> true
+     * // const int[n] -> true
+     * // const volatile int[n] -> false
+     * // void -> false
+     * template<typename type>
+     * concept test = test_impl<type>::value;
+     * @endcode
+     *
+     */
+    template <typename type, typename default_type, template <typename> typename forward_type>
+    using forward_without_const_t = ::std::conditional_t<::std::is_const_v<type>, forward_type<::std::remove_const_t<type>>, default_type>;
+
+    /**
+     * @brief 移除volatile限定并转发
+     *
+     * @tparam type 输入类型
+     * @tparam default_type 输入类型不带有volatile限定时要返回的类型
+     * @tparam forward_type 输入类型带有volatile限定时要转发到的类型
+     * @code {.cpp}
+     * template<typename type>
+     * struct test_impl : forward_without_volatile_t<type, std::false_type, test_impl> {};
+     * template<typename type, std::size_t n>
+     * struct test_impl<type[n]> : std::true_type {};
+     * // 检测类型type是否是一维有界数组
+     * // int[n] -> true
+     * // volatile int[n] -> true
+     * // const volatile int[n] -> false
+     * // void -> false
+     * template<typename type>
+     * concept test = test_impl<type>::value;
+     * @endcode
+     *
+     */
+    template <typename type, typename default_type, template <typename> typename forward_type>
+    using forward_without_volatile_t =
+        ::std::conditional_t<::std::is_volatile_v<type>, forward_type<::std::remove_volatile_t<type>>, default_type>;
+
+    /**
+     * @brief 移除cv限定并转发
+     *
+     * @tparam type 输入类型
+     * @tparam default_type 输入类型不带有cv限定时要返回的类型
+     * @tparam forward_type 输入类型带有cv限定时要转发到的类型
+     * @code {.cpp}
+     * template<typename type>
+     * struct test_impl : forward_without_cv_t<type, std::false_type, test_impl> {};
+     * template<typename type, std::size_t n>
+     * struct test_impl<type[n]> : std::true_type {};
+     * // 检测类型type是否是一维有界数组
+     * // int[n] -> true
+     * // const int[n] -> true
+     * // const volatile int[n] -> true
+     * // void -> false
+     * template<typename type>
+     * concept test = test_impl<type>::value;
+     * @endcode
+     *
+     */
+    template <typename type, typename default_type, template <typename> typename forward_type>
+    using forward_without_cv_t =
+        ::std::conditional_t<::std::same_as<type, ::std::remove_cv_t<type>>, default_type, forward_type<::std::remove_cv_t<type>>>;
 }  // namespace cppfastbox
