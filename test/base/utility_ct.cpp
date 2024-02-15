@@ -237,4 +237,207 @@ constexpr void test_simd_integer() noexcept
 #endif
 }
 
+#define ASSERT_SAME(is_signed, size, type)                                                                                                      \
+    static_assert(std::same_as<fixed_size_integer_t<is_signed, size>, type>,                                                                    \
+                  "fixed_size_integer_t<" #is_signed ", " #size "> is different from " #type)
+
+constexpr void test_fixed_size_integer_t() noexcept
+{
+    ASSERT_SAME(true, 1, std::int8_t);
+    ASSERT_SAME(true, 2, std::int16_t);
+    ASSERT_SAME(true, 4, std::int32_t);
+    ASSERT_SAME(true, 8, std::int64_t);
+#ifdef __SIZEOF_INT128__
+    ASSERT_SAME(true, 16, native_int128_t);
+#endif
+
+    ASSERT_SAME(false, 1, std::uint8_t);
+    ASSERT_SAME(false, 2, std::uint16_t);
+    ASSERT_SAME(false, 4, std::uint32_t);
+    ASSERT_SAME(false, 8, std::uint64_t);
+#ifdef __SIZEOF_INT128__
+    ASSERT_SAME(false, 16, native_uint128_t);
+#endif
+}
+
+#undef ASSERT_SAME
+#define ASSERT_SAME(size, type)                                                                                                                 \
+    static_assert(std::same_as<fixed_size_character_t<size>, type>, "fixed_size_character_t<" #size "> is different from " #type)
+
+constexpr void test_fixed_size_character_t() noexcept
+{
+    ASSERT_SAME(1, char8_t);
+    ASSERT_SAME(2, char16_t);
+    ASSERT_SAME(4, char32_t);
+}
+
+#undef ASSERT_SAME
+#define ASSERT_SAME(type)                                                                                                                       \
+    static_assert(std::same_as<to_fixed_size_integer_t<type>, fixed_size_integer_t<signed_integral<type>, sizeof(type)>>,                       \
+                  "to_fixed_size_integer_t<" #type "> is different from fixed_size_integer_t<signed_integral<" #type ">, sizeof(" #type ")>")
+
+constexpr void test_to_fixed_integer_size_t() noexcept
+{
+    ASSERT_SAME(bool);
+    ASSERT_SAME(char);
+    ASSERT_SAME(signed char);
+    ASSERT_SAME(unsigned char);
+    ASSERT_SAME(int);
+    ASSERT_SAME(unsigned int);
+    ASSERT_SAME(long);
+    ASSERT_SAME(unsigned long);
+    ASSERT_SAME(long long);
+    ASSERT_SAME(unsigned long long);
+#ifdef __SIZEOF_INT128__
+    ASSERT_SAME(native_int128_t);
+    ASSERT_SAME(native_uint128_t);
+#endif
+}
+
+#undef ASSERT_SAME
+#define ASSERT_SAME(type)                                                                                                                       \
+    static_assert(std::same_as<to_fixed_size_character_t<type>, fixed_size_character_t<sizeof(type)>>,                                          \
+                  "fixed_size_character_t<" #type "> is different from fixed_size_integer_t<sizeof(" #type ")>")
+
+constexpr void test_to_fixed_character_size_t() noexcept
+{
+    ASSERT_SAME(char);
+    ASSERT_SAME(wchar_t);
+    ASSERT_SAME(char8_t);
+    ASSERT_SAME(char16_t);
+    ASSERT_SAME(char32_t);
+}
+
+#undef ASSERT_SAME
+#define ASSERT_SAME(is_move, type, expect)                                                                                                      \
+    static_assert(std::same_as<cond_move_t<is_move, type>, expect>, "cond_move_t<" #is_move ", " #type "> is different from " #expect)
+
+constexpr void test_cond_move_t() noexcept
+{
+    ASSERT_SAME(true, int, int&&);
+    ASSERT_SAME(true, int&, int&&);
+    ASSERT_SAME(true, int&&, int&&);
+    ASSERT_SAME(false, int, int&&);
+    ASSERT_SAME(false, int&, int&);
+    ASSERT_SAME(false, int&&, int&&);
+}
+
+#undef ASSERT_SAME
+#define ASSERT_SAME(is_move, type)                                                                                                              \
+    static_assert(std::same_as<decltype(cond_move_v<is_move>(std::declval<type>())), cond_move_t<is_move, type>>,                               \
+                  "decltype(cond_move_v<" #is_move ">(std::declval<" #type ">())) is different from cond_move_t<" #is_move ", " #type ">")
+
+constexpr void test_cond_move_v() noexcept
+{
+    ASSERT_SAME(true, int);
+    ASSERT_SAME(true, int&);
+    ASSERT_SAME(true, int&&);
+    ASSERT_SAME(false, int);
+    ASSERT_SAME(false, int&);
+    ASSERT_SAME(false, int&&);
+}
+
+#undef ASSERT_SAME
+#define ASSERT_SAME(is_rvalue, type, expect)                                                                                                    \
+    static_assert(std::same_as<cond_forward_t<is_rvalue, type>, expect>, "cond_forward_t<" #is_rvalue ", " #type "> is different from " #expect)
+
+constexpr void test_cond_forward_t() noexcept
+{
+    ASSERT_SAME(true, int, int&&);
+    ASSERT_SAME(true, int&, int&&);
+    ASSERT_SAME(true, int&&, int&&);
+    ASSERT_SAME(false, int, int&);
+    ASSERT_SAME(false, int&, int&);
+    ASSERT_SAME(false, int&&, int&);
+}
+
+#undef ASSERT_SAME
+#define ASSERT_SAME(is_rvalue, type)                                                                                                            \
+    static_assert(std::same_as<decltype(cond_forward_v<is_rvalue>(std::declval<type>())), cond_forward_t<is_rvalue, type>>,                     \
+                  "decltype(cond_forward_v<" #is_rvalue ">(std::declval<" #type ">())) is different from cond_forward_t<" #is_rvalue ", " #type \
+                  ">")
+
+constexpr void test_cond_forward_v() noexcept
+{
+    ASSERT_SAME(true, int);
+    ASSERT_SAME(true, int&);
+    ASSERT_SAME(true, int&&);
+    ASSERT_SAME(false, int);
+    ASSERT_SAME(false, int&);
+    ASSERT_SAME(false, int&&);
+}
+
+#undef ASSERT_SAME
+
+template <typename type>
+struct test_forward_without_impl
+{
+};
+
+template <typename type>
+struct test_forward_without_const_t_impl : forward_without_const_t<type, std::false_type, test_forward_without_const_t_impl>
+{
+};
+
+template <typename type>
+struct test_forward_without_const_t_impl<test_forward_without_impl<type>> : std::true_type
+{
+};
+
+template <typename type>
+concept test_forward_without_const_t_ = test_forward_without_const_t_impl<type>::value;
+
+constexpr void test_forward_without_const_t() noexcept
+{
+    static_assert(test_forward_without_const_t_<test_forward_without_impl<int>>);
+    static_assert(test_forward_without_const_t_<const test_forward_without_impl<int>>);
+    static_assert(!test_forward_without_const_t_<volatile test_forward_without_impl<int>>);
+    static_assert(!test_forward_without_const_t_<const volatile test_forward_without_impl<int>>);
+    static_assert(!test_forward_without_const_t_<void>);
+}
+
+template <typename type>
+struct test_forward_without_volatile_t_impl : forward_without_volatile_t<type, std::false_type, test_forward_without_volatile_t_impl>
+{
+};
+
+template <typename type>
+struct test_forward_without_volatile_t_impl<test_forward_without_impl<type>> : std::true_type
+{
+};
+
+template <typename type>
+concept test_forward_without_volatile_t_ = test_forward_without_volatile_t_impl<type>::value;
+
+constexpr void test_forward_without_volatile_t() noexcept
+{
+    static_assert(test_forward_without_volatile_t_<test_forward_without_impl<int>>);
+    static_assert(!test_forward_without_volatile_t_<const test_forward_without_impl<int>>);
+    static_assert(test_forward_without_volatile_t_<volatile test_forward_without_impl<int>>);
+    static_assert(!test_forward_without_volatile_t_<const volatile test_forward_without_impl<int>>);
+    static_assert(!test_forward_without_volatile_t_<void>);
+}
+
+template <typename type>
+struct test_forward_without_cv_t_impl : forward_without_cv_t<type, std::false_type, test_forward_without_cv_t_impl>
+{
+};
+
+template <typename type>
+struct test_forward_without_cv_t_impl<test_forward_without_impl<type>> : std::true_type
+{
+};
+
+template <typename type>
+concept test_forward_without_cv_t_ = test_forward_without_cv_t_impl<type>::value;
+
+constexpr void test_forward_without_cv_t() noexcept
+{
+    static_assert(test_forward_without_cv_t_<test_forward_without_impl<int>>);
+    static_assert(test_forward_without_cv_t_<const test_forward_without_impl<int>>);
+    static_assert(test_forward_without_cv_t_<volatile test_forward_without_impl<int>>);
+    static_assert(test_forward_without_cv_t_<const volatile test_forward_without_impl<int>>);
+    static_assert(!test_forward_without_cv_t_<void>);
+}
+
 int main() { return 0; }
