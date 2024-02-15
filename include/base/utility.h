@@ -63,7 +63,7 @@ namespace cppfastbox
     // 由向量扩展使用的无符号整数类型
     template <typename type>
     concept simd_unsigned_integral = ::std::same_as<type, ::cppfastbox::simd_uint8_t> || ::std::same_as<type, ::cppfastbox::simd_uint16_t> ||
-                                   ::std::same_as<type, ::cppfastbox::simd_uint32_t> || ::std::same_as<type, ::cppfastbox::simd_uint64_t>;
+                                     ::std::same_as<type, ::cppfastbox::simd_uint32_t> || ::std::same_as<type, ::cppfastbox::simd_uint64_t>;
     // 由向量使用的整数类型
     template <typename type>
     concept simd_integral = ::cppfastbox::simd_unsigned_integral<type> || ::cppfastbox::simd_signed_integral<type>;
@@ -220,9 +220,10 @@ namespace cppfastbox
      *
      */
     template <bool is_move, typename type>
-    using cond_move_t = ::std::conditional_t<is_move,
-                                             ::std::add_rvalue_reference_t<type>,
-                                             ::std::conditional_t<::std::is_reference_v<type>, type, ::std::add_rvalue_reference_t<type>>>;
+    using cond_move_t = ::std::conditional_t<
+        is_move,
+        ::std::add_rvalue_reference_t<::std::remove_reference_t<type>>,
+        ::std::conditional_t<::std::is_reference_v<type>, type, ::std::add_rvalue_reference_t<::std::remove_reference_t<type>>>>;
 
     /**
      * @brief 根据`is_move`选择move或forward
@@ -282,14 +283,16 @@ namespace cppfastbox
      * @tparam default_type 输入类型不带有const限定时要返回的类型
      * @tparam forward_type 输入类型带有const限定时要转发到的类型
      * @code {.cpp}
+     * template<typename type> struct impl{};
      * template<typename type>
      * struct test_impl : forward_without_const_t<type, std::false_type, test_impl> {};
-     * template<typename type, std::size_t n>
-     * struct test_impl<type[n]> : std::true_type {};
+     * template<typename type>
+     * struct test_impl<impl<type>> : std::true_type {};
      * // 检测类型type是否是一维有界数组
-     * // int[n] -> true
-     * // const int[n] -> true
-     * // const volatile int[n] -> false
+     * // impl<int> -> true
+     * // const impl<int> -> true
+     * // volatile impl<int> -> false
+     * // const volatile impl<int> -> false
      * // void -> false
      * template<typename type>
      * concept test = test_impl<type>::value;
@@ -306,14 +309,16 @@ namespace cppfastbox
      * @tparam default_type 输入类型不带有volatile限定时要返回的类型
      * @tparam forward_type 输入类型带有volatile限定时要转发到的类型
      * @code {.cpp}
+     * template<typename type> struct impl{};
      * template<typename type>
      * struct test_impl : forward_without_volatile_t<type, std::false_type, test_impl> {};
-     * template<typename type, std::size_t n>
-     * struct test_impl<type[n]> : std::true_type {};
+     * template<typename type>
+     * struct test_impl<impl<type>> : std::true_type {};
      * // 检测类型type是否是一维有界数组
-     * // int[n] -> true
-     * // volatile int[n] -> true
-     * // const volatile int[n] -> false
+     * // impl<int> -> true
+     * // const impl<int> -> false
+     * // volatile impl<int> -> true
+     * // const volatile impl<int> -> false
      * // void -> false
      * template<typename type>
      * concept test = test_impl<type>::value;
@@ -331,14 +336,16 @@ namespace cppfastbox
      * @tparam default_type 输入类型不带有cv限定时要返回的类型
      * @tparam forward_type 输入类型带有cv限定时要转发到的类型
      * @code {.cpp}
+     * template<typename type> struct impl{};
      * template<typename type>
      * struct test_impl : forward_without_cv_t<type, std::false_type, test_impl> {};
-     * template<typename type, std::size_t n>
-     * struct test_impl<type[n]> : std::true_type {};
+     * template<typename type>
+     * struct test_impl<impl<type>> : std::true_type {};
      * // 检测类型type是否是一维有界数组
-     * // int[n] -> true
-     * // const int[n] -> true
-     * // const volatile int[n] -> true
+     * // impl<int> -> true
+     * // const impl<int> -> true
+     * // volatile impl<int> -> true
+     * // const volatile impl<int> -> false
      * // void -> false
      * template<typename type>
      * concept test = test_impl<type>::value;
