@@ -13,9 +13,3 @@ constexpr void test_max() noexcept
     static_assert(max(1, 2) == 2, "max(1,2) is not 2");
     static_assert(max(1,2, std::less{}) == 2, "max(1, 2, std::less{}) is not 2");
 }
-
-int main()
-{
-    test_min();
-    test_max();
-}
