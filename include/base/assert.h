@@ -25,7 +25,11 @@ namespace cppfastbox
      */
     constexpr inline void constexpr_assert(bool expression) noexcept
     {
-        if(!expression) { std::unreachable(); }
+        if(!expression)
+        {
+            if consteval { ::std::unreachable(); }
+            else { ::cppfastbox::fast_fail(); }
+        }
     }
 
     namespace detail
@@ -38,12 +42,12 @@ namespace cppfastbox
          */
         constexpr inline void assert(bool expression) noexcept
         {
-            if consteval { constexpr_assert(expression); }
+            if consteval { ::cppfastbox::constexpr_assert(expression); }
             else
             {
                 if constexpr(!is_release)
                 {
-                    if(!expression) [[unlikely]] { fast_fail(); }
+                    if(!expression) [[unlikely]] { ::cppfastbox::fast_fail(); }
                 }
             }
         }
@@ -56,10 +60,10 @@ namespace cppfastbox
          */
         constexpr inline void always_assert(bool expression) noexcept
         {
-            if consteval { constexpr_assert(expression); }
+            if consteval { ::cppfastbox::constexpr_assert(expression); }
             else
             {
-                if(!expression) [[unlikely]] { fast_fail(); }
+                if(!expression) [[unlikely]] { ::cppfastbox::fast_fail(); }
             }
         }
     }  // namespace detail
