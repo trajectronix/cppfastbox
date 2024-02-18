@@ -23,22 +23,22 @@ namespace cppfastbox
 #if __has_include(<cstdio>)
         [[noreturn]] inline void assert_failed(const char* file, unsigned line, unsigned colum, const char* function) noexcept
         {
-            fwrite("Assert failed: In file ", 1, 23, stderr);
-            fwrite(file, 1, __builtin_strlen(file), stderr);
-            fwrite(" ", 1, 1, stderr);
+            ::fwrite("Assert failed: In file ", 1, 23, stderr);
+            ::fwrite(file, 1, __builtin_strlen(file), stderr);
+            ::fwrite(" ", 1, 1, stderr);
             char buf[32]{};
-            auto res{std::to_chars(buf, buf + 32, line).ptr};
+            auto res{::std::to_chars(buf, buf + 32, line).ptr};
             *res++ = ':';
-            res = std::to_chars(res, buf + 32, colum).ptr;
+            res = ::std::to_chars(res, buf + 32, colum).ptr;
             __builtin_memcpy(res, " function: ", 11);
             res += 11;
-            fwrite(buf, 1, res - buf, stderr);
-            fwrite(function, 1, __builtin_strlen(function), stderr);
-            fwrite("\n", 1, 1, stderr);
-            fast_fail();
+            ::fwrite(buf, 1, res - buf, stderr);
+            ::fwrite(function, 1, __builtin_strlen(function), stderr);
+            ::fwrite("\n", 1, 1, stderr);
+            ::cppfastbox::fast_fail();
         }
 #else
-        [[noreturn]] inline void assert_failed(const char*, unsigned, unsigned, const char*) noexcept { fast_fail(); }
+        [[noreturn]] inline void assert_failed(const char*, unsigned, unsigned, const char*) noexcept { ::cppfastbox::fast_fail(); }
 #endif
     }  // namespace detail
 
@@ -49,16 +49,16 @@ namespace cppfastbox
      * @param location 要输出的位置信息
      * @note 需要libc才能输出错误消息
      */
-    constexpr inline void assert(bool expression, std::source_location location = std::source_location::current()) noexcept
+    constexpr inline void assert(bool expression, ::std::source_location location = ::std::source_location::current()) noexcept
     {
-        if consteval { constexpr_assert(expression); }
+        if consteval { ::cppfastbox::constexpr_assert(expression); }
         else
         {
-            if constexpr(!is_release)
+            if constexpr(!::cppfastbox::is_release)
             {
                 if(!expression) [[unlikely]]
                 {
-                    detail::assert_failed(location.file_name(), location.line(), location.column(), location.function_name());
+                    ::cppfastbox::detail::assert_failed(location.file_name(), location.line(), location.column(), location.function_name());
                 }
             }
         }
@@ -71,12 +71,12 @@ namespace cppfastbox
      * @param location 要输出的位置信息
      * @note 需要libc才能输出错误消息
      */
-    constexpr inline void always_assert(bool expression, std::source_location location = std::source_location::current()) noexcept
+    constexpr inline void always_assert(bool expression, ::std::source_location location = ::std::source_location::current()) noexcept
     {
-        if consteval { constexpr_assert(expression); }
+        if consteval { ::cppfastbox::constexpr_assert(expression); }
         else
         {
-            if(!expression) { detail::assert_failed(location.file_name(), location.line(), location.column(), location.function_name()); }
+            if(!expression) { ::cppfastbox::detail::assert_failed(location.file_name(), location.line(), location.column(), location.function_name()); }
         }
     }
 }  // namespace cppfastbox
