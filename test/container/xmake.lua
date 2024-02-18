@@ -1,0 +1,12 @@
+target("trivially_swap")
+    set_default(false)
+    add_files("trivially_swap.cpp")
+    add_packages("doctest")
+    add_tests("unit_test", {group = "unit_test"})
+target_end()
+
+target("container_uint_test")
+    set_default(false)
+    set_kind("phony")
+    add_deps("trivially_swap")
+target_end()
