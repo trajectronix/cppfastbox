@@ -106,7 +106,7 @@ namespace cppfastbox
             {
                 if constexpr(::cppfastbox::trivially_equality_comparable<value_type>)
                 {
-                    return __builtin_memcmp(::std::addressof(a), ::std::addressof(b), size()) == 0;
+                    return __builtin_memcmp(::std::addressof(a), ::std::addressof(b), size() * sizeof(value_type)) == 0;
                 }
             }
             for(auto i{0zu}; i < size(); i++)
@@ -123,7 +123,7 @@ namespace cppfastbox
             {
                 if constexpr(::cppfastbox::trivially_three_way_comparable<value_type>)
                 {
-                    return result_type{__builtin_memcmp(::std::addressof(a), ::std::addressof(b), size()) <=> 0};
+                    return result_type{__builtin_memcmp(::std::addressof(a), ::std::addressof(b), size() * sizeof(value_type)) <=> 0};
                 }
             }
             for(auto i{0zu}; i < size(); i++)
@@ -512,7 +512,7 @@ namespace cppfastbox
             {
                 if constexpr(::cppfastbox::trivially_equality_comparable<value_type>)
                 {
-                    return __builtin_memcmp(::std::addressof(a), ::std::addressof(b), size()) == 0;
+                    return __builtin_memcmp(::std::addressof(a), ::std::addressof(b), size()* sizeof(value_type)) == 0;
                 }
                 else
                 {
@@ -535,7 +535,7 @@ namespace cppfastbox
             {
                 if constexpr(::cppfastbox::trivially_three_way_comparable<value_type>)
                 {
-                    return result_type{__builtin_memcmp(::std::addressof(a), ::std::addressof(b), size()) <=> 0};
+                    return result_type{__builtin_memcmp(::std::addressof(a), ::std::addressof(b), size() * sizeof(value_type)) <=> 0};
                 }
                 else
                 {
