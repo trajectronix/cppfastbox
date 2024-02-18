@@ -505,6 +505,43 @@ constexpr void test_split_into_native_ls_lanes_4() noexcept
     static_assert(lanes.l1 == 1);
 }
 
+constexpr void test_split_into_native_ls_lanes_small() noexcept
+{
+    {
+        constexpr auto size{2 + 1};
+        constexpr auto lanes{split_into_native_ls_lanes<4>(size)};
+        static_assert(lanes.l64 == 0);
+        static_assert(lanes.l32 == 0);
+        static_assert(lanes.l16 == 0);
+        static_assert(lanes.l8 == 0);
+        static_assert(lanes.l4 == 0);
+        static_assert(lanes.l2 == 1);
+        static_assert(lanes.l1 == 1);
+    }
+    {
+        constexpr auto size{1};
+        constexpr auto lanes{split_into_native_ls_lanes<4>(size)};
+        static_assert(lanes.l64 == 0);
+        static_assert(lanes.l32 == 0);
+        static_assert(lanes.l16 == 0);
+        static_assert(lanes.l8 == 0);
+        static_assert(lanes.l4 == 0);
+        static_assert(lanes.l2 == 0);
+        static_assert(lanes.l1 == 1);
+    }
+    {
+        constexpr auto size{0};
+        constexpr auto lanes{split_into_native_ls_lanes<4>(size)};
+        static_assert(lanes.l64 == 0);
+        static_assert(lanes.l32 == 0);
+        static_assert(lanes.l16 == 0);
+        static_assert(lanes.l8 == 0);
+        static_assert(lanes.l4 == 0);
+        static_assert(lanes.l2 == 0);
+        static_assert(lanes.l1 == 0);
+    }
+}
+
 int main()
 {
     test_integer();
@@ -528,4 +565,5 @@ int main()
     test_split_into_native_ls_lanes_16();
     test_split_into_native_ls_lanes_8();
     test_split_into_native_ls_lanes_4();
+    test_split_into_native_ls_lanes_small();
 }
