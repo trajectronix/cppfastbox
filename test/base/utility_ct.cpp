@@ -440,4 +440,22 @@ constexpr void test_forward_without_cv_t() noexcept
     static_assert(!test_forward_without_cv_t_<void>);
 }
 
-int main() { return 0; }
+int main()
+{
+    test_integer();
+    test_fixed_size_integer();
+    test_character();
+    test_fixed_size_character();
+    test_simd_integer();
+    test_fixed_size_integer_t();
+    test_fixed_size_character_t();
+    test_to_fixed_integer_size_t();
+    test_to_fixed_character_size_t();
+    test_cond_move_t();
+    test_cond_move_v();
+    test_cond_forward_t();
+    test_cond_forward_v();
+    test_forward_without_const_t();
+    test_forward_without_volatile_t();
+    test_forward_without_cv_t();
+}

@@ -35,4 +35,8 @@ constexpr void test_float128() noexcept
 
 #undef NONSUPPORT
 
-int main() { return 0; }
+int main()
+{
+    test_int128();
+    test_float128();
+}
