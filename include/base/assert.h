@@ -16,18 +16,7 @@ namespace cppfastbox
      * @brief 快速退出程序
      *
      */
-    [[noreturn]] inline void fast_fail() noexcept
-    {
-#ifdef __has_builtin
-    #if __has_builtin(__builtin_trap)
-        __builtin_trap();
-    #elif __has_builtin(__builtin_abort)
-        __builtin_abort();
-    #else
-        std::abort();
-    #endif
-#endif
-    }
+    [[noreturn]] inline void fast_fail() noexcept { ::std::_Exit(1); }
 
     /**
      * @brief 若expression为false则引发编译期计算失败
