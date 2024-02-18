@@ -8,6 +8,7 @@
 #pragma once
 #include <bit>
 #include <iterator>
+#include <memory>
 #include <ranges>
 #include <compare>
 #include "../base/utility.h"
@@ -92,33 +93,176 @@ namespace cppfastbox
 
 namespace cppfastbox
 {
-    template <typename type>
-    constexpr inline void swap(type& a, type& b) noexcept
+    /**
+     * @brief 平凡地交换两块内存的数据
+     *
+     * @tparam size 要交换的大小
+     * @tparam align 内存对齐
+     * @tparam unroll 循环展开深度
+     * @param a 指向要交换数据的指针
+     * @param b 指向要交换数据的指针
+     */
+    template <::std::size_t size, ::std::size_t align, ::std::size_t unroll = 4>
+    inline void trivially_swap(void* a, void* b) noexcept
     {
-        if !consteval
+        using lanes_t = ::cppfastbox::native_ls_lanes;
+        constexpr auto lanes{::cppfastbox::split_into_native_ls_lanes(size)};
+        auto pa = reinterpret_cast<char*>(::std::assume_aligned<align>(a));
+        auto pb = reinterpret_cast<char*>(::std::assume_aligned<align>(b));
+
+        if constexpr(lanes.l64 == 1)  //< 有助于提高调试时生成汇编的质量
         {
-            if constexpr(::cppfastbox::trivially_relocatable<type>)
+            lanes_t::l64_t buf1{}, buf2{};
+            __builtin_memcpy(&buf1, pa, 64);
+            __builtin_memcpy(&buf2, pb, 64);
+            __builtin_memcpy(pa, &buf2, 64);
+            __builtin_memcpy(pb, &buf1, 64);
+            pa += 64, pb += 64;
+        }
+        else if constexpr(lanes.l64 > 1)
+        {
+#ifdef __clang__
+    #pragma clang loop unroll_count(unroll)
+#else
+    #pragma GCC unroll(unroll)
+#endif
+            for(auto i{0zu}; i < lanes.l64; i++)
             {
-                constexpr auto size{::std::bit_ceil(sizeof(type))};
-                constexpr auto buf_size{size > 64 ? 64 : size};
-                constexpr auto copy_times{sizeof(type) / buf_size};
-                constexpr auto rest_size{sizeof(type) % buf_size};
-                auto pa{reinterpret_cast<char*>(::std::addressof(a))};
-                auto pb{reinterpret_cast<char*>(::std::addressof(b))};
-                char buf[buf_size]{};
-                for(auto i{0zu}; i < copy_times; i++)
-                {
-                    __builtin_memcpy(buf, pa, buf_size);
-                    __builtin_memcpy(pa, pb, buf_size);
-                    __builtin_memcpy(pb, buf, buf_size);
-                    pa += buf_size, pb += buf_size;
-                }
-                __builtin_memcpy(buf, pa, rest_size);
-                __builtin_memcpy(pa, pb, rest_size);
-                __builtin_memcpy(pb, buf, rest_size);
-                return;
+                lanes_t::l64_t buf1{}, buf2{};
+                __builtin_memcpy(&buf1, pa, 64);
+                __builtin_memcpy(&buf2, pb, 64);
+                __builtin_memcpy(pa, &buf2, 64);
+                __builtin_memcpy(pb, &buf1, 64);
+                pa += 64, pb += 64;
             }
         }
-        return std::ranges::swap(a, b);
+
+        if constexpr(lanes.l32 == 1)  //< 有助于提高调试时生成汇编的质量
+        {
+            lanes_t::l32_t buf1{}, buf2{};
+            __builtin_memcpy(&buf1, pa, 32);
+            __builtin_memcpy(&buf2, pb, 32);
+            __builtin_memcpy(pa, &buf2, 32);
+            __builtin_memcpy(pb, &buf1, 32);
+            pa += 32, pb += 32;
+        }
+        else if constexpr(lanes.l32 > 1)
+        {
+#ifdef __clang__
+    #pragma clang loop unroll_count(unroll)
+#else
+    #pragma GCC unroll(unroll)
+#endif
+            for(auto i{0zu}; i < lanes.l32; i++)
+            {
+                lanes_t::l32_t buf1{}, buf2{};
+                __builtin_memcpy(&buf1, pa, 32);
+                __builtin_memcpy(&buf2, pb, 32);
+                __builtin_memcpy(pa, &buf2, 32);
+                __builtin_memcpy(pb, &buf1, 32);
+                pa += 32, pb += 32;
+            }
+        }
+
+        if constexpr(lanes.l16 == 1)  //< 有助于提高调试时生成汇编的质量
+        {
+            lanes_t::l16_t buf1{}, buf2{};
+            __builtin_memcpy(&buf1, pa, 16);
+            __builtin_memcpy(&buf2, pb, 16);
+            __builtin_memcpy(pa, &buf2, 16);
+            __builtin_memcpy(pb, &buf1, 16);
+            pa += 16, pb += 16;
+        }
+        else if constexpr(lanes.l16 > 1)
+        {
+#ifdef __clang__
+    #pragma clang loop unroll_count(4)
+#else
+    #pragma GCC unroll(4)
+#endif
+            for(auto i{0zu}; i < lanes.l16; i++)
+            {
+                lanes_t::l16_t buf1{}, buf2{};
+                __builtin_memcpy(&buf1, pa, 16);
+                __builtin_memcpy(&buf2, pb, 16);
+                __builtin_memcpy(pa, &buf2, 16);
+                __builtin_memcpy(pb, &buf1, 16);
+                pa += 16, pb += 16;
+            }
+        }
+
+        if constexpr(lanes.l8 == 1)  //< 有助于提高调试时生成汇编的质量
+        {
+            lanes_t::l8_t buf1{}, buf2{};
+            __builtin_memcpy(&buf1, pa, 8);
+            __builtin_memcpy(&buf2, pb, 8);
+            __builtin_memcpy(pa, &buf2, 8);
+            __builtin_memcpy(pb, &buf1, 8);
+            pa += 8, pb += 8;
+        }
+        else if constexpr(lanes.l8 > 1)
+        {
+#ifdef __clang__
+    #pragma clang loop unroll_count(4)
+#else
+    #pragma GCC unroll(4)
+#endif
+            for(auto i{0zu}; i < lanes.l8; i++)
+            {
+                lanes_t::l8_t buf1{}, buf2{};
+                __builtin_memcpy(&buf1, pa, 8);
+                __builtin_memcpy(&buf2, pb, 8);
+                __builtin_memcpy(pa, &buf2, 8);
+                __builtin_memcpy(pb, &buf1, 8);
+                pa += 8, pb += 8;
+            }
+        }
+
+        if constexpr(lanes.l4 == 1)  //< 有助于提高调试时生成汇编的质量
+        {
+            lanes_t::l4_t buf1{}, buf2{};
+            __builtin_memcpy(&buf1, pa, 4);
+            __builtin_memcpy(&buf2, pb, 4);
+            __builtin_memcpy(pa, &buf2, 4);
+            __builtin_memcpy(pb, &buf1, 4);
+            pa += 4, pb += 4;
+        }
+        else if constexpr(lanes.l4 > 1)
+        {
+#ifdef __clang__
+    #pragma clang loop unroll_count(4)
+#else
+    #pragma GCC unroll(4)
+#endif
+            for(auto i{0zu}; i < lanes.l4; i++)
+            {
+                lanes_t::l4_t buf1{}, buf2{};
+                __builtin_memcpy(&buf1, pa, 4);
+                __builtin_memcpy(&buf2, pb, 4);
+                __builtin_memcpy(pa, &buf2, 4);
+                __builtin_memcpy(pb, &buf1, 4);
+                pa += 4, pb += 4;
+            }
+        }
+
+        // 硬件支持的最大读写通道大小不小于4字节，故1字节和2字节的读写至多发生一次
+        if constexpr(lanes.l2 == 1)  //< 有助于提高调试时生成汇编的质量
+        {
+            lanes_t::l2_t buf1{}, buf2{};
+            __builtin_memcpy(&buf1, pa, 2);
+            __builtin_memcpy(&buf2, pb, 2);
+            __builtin_memcpy(pa, &buf2, 2);
+            __builtin_memcpy(pb, &buf1, 2);
+            pa += 2, pb += 2;
+        }
+
+        if constexpr(lanes.l1 == 1)  //< 有助于提高调试时生成汇编的质量
+        {
+            lanes_t::l1_t buf1{}, buf2{};
+            __builtin_memcpy(&buf1, pa, 1);
+            __builtin_memcpy(&buf2, pb, 1);
+            __builtin_memcpy(pa, &buf2, 1);
+            __builtin_memcpy(pb, &buf1, 1);
+        }
     }
 }  // namespace cppfastbox
