@@ -9,6 +9,7 @@
 #include <cstddef>
 #include <utility>
 #include <bit>
+#include "min_max.h"
 
 #if __STDC_HOSTED__ == 0
     #define CPPFASTBOX_FREESTANDING
@@ -458,7 +459,7 @@ namespace cppfastbox
             else { return 0; }
         }
 
-        consteval inline ::std::size_t native_vector_max_ls_size() noexcept
+        consteval inline ::std::size_t native_vector_ls_max_size() noexcept
         {
             if constexpr(::cppfastbox::cpu_flags::avx512f_support) { return 64; }
             else if constexpr(::cppfastbox::cpu_flags::avx_support) { return 32; }
@@ -475,7 +476,11 @@ namespace cppfastbox
     // 硬件支持的最大向量大小，若硬件不支持向量化则为0
     constexpr inline auto native_vector_max_size{::cppfastbox::detail::native_vector_max_size()};
     // 单指令可以读写的最大向量大小，若硬件不支持向量化则为0
-    constexpr inline auto native_vector_max_ls_size{::cppfastbox::detail::native_vector_max_ls_size()};
+    constexpr inline auto native_vector_ls_max_size{::cppfastbox::detail::native_vector_ls_max_size()};
     // 是否支持向量化
     constexpr inline auto simd_support{::cppfastbox::native_vector_max_size != 0};
+    // 硬件支持的最大通道大小
+    constexpr inline auto native_lane_max_size{::cppfastbox::max(::cppfastbox::native_vector_max_size, sizeof(::std::size_t))};
+    // 硬件支持的最大读写通道大小
+    constexpr inline auto native_ls_lane_max_size{::cppfastbox::max(::cppfastbox::native_vector_ls_max_size, sizeof(::std::size_t))};
 }  // namespace cppfastbox
