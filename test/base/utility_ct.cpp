@@ -440,6 +440,71 @@ constexpr void test_forward_without_cv_t() noexcept
     static_assert(!test_forward_without_cv_t_<void>);
 }
 
+constexpr void test_split_into_native_ls_lanes_64() noexcept
+{
+    constexpr auto size{128 + 64 + 32 + 16 + 8 + 4 + 2 + 1};
+    constexpr auto lanes{split_into_native_ls_lanes<64>(size)};
+    static_assert(lanes.l64 == 3);
+    static_assert(lanes.l32 == 1);
+    static_assert(lanes.l16 == 1);
+    static_assert(lanes.l8 == 1);
+    static_assert(lanes.l4 == 1);
+    static_assert(lanes.l2 == 1);
+    static_assert(lanes.l1 == 1);
+}
+
+constexpr void test_split_into_native_ls_lanes_32() noexcept
+{
+    constexpr auto size{128 + 64 + 32 + 16 + 4 + 2};
+    constexpr auto lanes{split_into_native_ls_lanes<32>(size)};
+    static_assert(lanes.l64 == 0);
+    static_assert(lanes.l32 == 7);
+    static_assert(lanes.l16 == 1);
+    static_assert(lanes.l8 == 0);
+    static_assert(lanes.l4 == 1);
+    static_assert(lanes.l2 == 1);
+    static_assert(lanes.l1 == 0);
+}
+
+constexpr void test_split_into_native_ls_lanes_16() noexcept
+{
+    constexpr auto size{128 + 64 + 8 + 4 + 2};
+    constexpr auto lanes{split_into_native_ls_lanes<16>(size)};
+    static_assert(lanes.l64 == 0);
+    static_assert(lanes.l32 == 0);
+    static_assert(lanes.l16 == 12);
+    static_assert(lanes.l8 == 1);
+    static_assert(lanes.l4 == 1);
+    static_assert(lanes.l2 == 1);
+    static_assert(lanes.l1 == 0);
+}
+
+constexpr void test_split_into_native_ls_lanes_8() noexcept
+{
+    constexpr auto size{128 + 64 + 32 + 16 + 4 + 2 + 1};
+    constexpr auto lanes{split_into_native_ls_lanes<8>(size)};
+    static_assert(lanes.l64 == 0);
+    static_assert(lanes.l32 == 0);
+    static_assert(lanes.l16 == 0);
+    static_assert(lanes.l8 == 30);
+    static_assert(lanes.l4 == 1);
+    static_assert(lanes.l2 == 1);
+    static_assert(lanes.l1 == 1);
+}
+
+constexpr void test_split_into_native_ls_lanes_4() noexcept
+{
+    constexpr auto size{32 + 16 + 8 + 4 + 2 + 1};
+    constexpr auto lanes{split_into_native_ls_lanes<4>(size)};
+    static_assert(lanes.l64 == 0);
+    static_assert(lanes.l32 == 0);
+    static_assert(lanes.l16 == 0);
+    static_assert(lanes.l8 == 0);
+    static_assert(lanes.l4 == 15);
+    static_assert(lanes.l2 == 1);
+    static_assert(lanes.l1 == 1);
+}
+
 int main()
 {
     test_integer();
@@ -458,4 +523,9 @@ int main()
     test_forward_without_const_t();
     test_forward_without_volatile_t();
     test_forward_without_cv_t();
+    test_split_into_native_ls_lanes_64();
+    test_split_into_native_ls_lanes_32();
+    test_split_into_native_ls_lanes_16();
+    test_split_into_native_ls_lanes_8();
+    test_split_into_native_ls_lanes_4();
 }

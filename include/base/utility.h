@@ -356,3 +356,52 @@ namespace cppfastbox
     using forward_without_cv_t =
         ::std::conditional_t<::std::same_as<type, ::std::remove_cv_t<type>>, default_type, forward_type<::std::remove_cv_t<type>>>;
 }  // namespace cppfastbox
+
+namespace cppfastbox
+{
+    /**
+     * @brief 硬件支持的读写通道
+     *
+     */
+    struct native_ls_lanes
+    {
+        using l64_t [[gnu::vector_size(64)]] = ::std::uint64_t;  //< 64字节通道类型
+        using l32_t [[gnu::vector_size(32)]] = ::std::uint64_t;  //< 32字节通道类型
+        using l16_t [[gnu::vector_size(16)]] = ::std::uint64_t;  //< 16字节通道类型
+        using l8_t = ::std::uint64_t;                            //< 8字节通道类型
+        using l4_t = ::std::uint32_t;                            //< 4字节通道类型
+        using l2_t = ::std::uint16_t;                            //< 2字节通道类型
+        using l1_t = ::std::uint8_t;                             //< 1字节通道类型
+        ::std::size_t l64{};                                     //< 64字节通道数量
+        ::std::size_t l32{};                                     //< 32字节通道数量
+        ::std::size_t l16{};                                     //< 16字节通道数量
+        ::std::size_t l8{};                                      //< 8字节通道数量
+        ::std::size_t l4{};                                      //< 4字节通道数量
+        ::std::size_t l2{};                                      //< 2字节通道数量
+        ::std::size_t l1{};                                      //< 1字节通道数量
+    };
+
+    /**
+     * @brief 将size大小的读写分解为硬件支持的读写通道
+     *
+     * @tparam lane_max_size 分解时最大读写通道的大小
+     * @param size 要分解的读写操作的字节数
+     */
+    template <::std::size_t lane_max_size = ::cppfastbox::native_ls_lane_max_size>
+    constexpr inline auto split_into_native_ls_lanes(::std::size_t size) noexcept
+    {
+        ::cppfastbox::native_ls_lanes lanes{};
+        lanes.l64 = lane_max_size >= 64 ? size >> 6 : 0;
+        size -= lanes.l64 * 64;
+        lanes.l32 = lane_max_size >= 32 ? size >> 5 : 0;
+        size -= lanes.l32 * 32;
+        lanes.l16 = lane_max_size >= 16 ? size >> 4 : 0;
+        size -= lanes.l16 * 16;
+        lanes.l8 = lane_max_size >= 8 ? size >> 3 : 0;
+        size -= lanes.l8 * 8;
+        lanes.l4 = size >> 2;
+        lanes.l2 = (size & 2) >> 1;
+        lanes.l1 = size & 1;
+        return lanes;
+    }
+}  // namespace cppfastbox
