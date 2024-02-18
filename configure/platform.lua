@@ -64,3 +64,8 @@ option("style")
     set_values("gnu", "msvc")
     set_description("Set the style of toolchain")
 option_end()
+
+option("hosted_test")
+    set_default(true)
+    set_description("Whether to use hosted test framework. Disable this when build for freestanding target.")
+option_end()
