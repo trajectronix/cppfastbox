@@ -282,34 +282,200 @@ namespace cppfastbox
 
 namespace cppfastbox
 {
+    /**
+     * @brief 判断是否以debug模式编译
+     *
+     * @note 这可能会启用一些利于调试的代码
+     */
+    constexpr inline bool is_debug{
 #if defined(DEBUG) || defined(_DEBUG)
-    /**
-     * @brief 判断是否以debug模式编译
-     *
-     * @note 这可能会启用一些利于调试的代码
-     */
-    constexpr inline auto is_debug{true};
-#else
-    /**
-     * @brief 判断是否以debug模式编译
-     *
-     * @note 这可能会启用一些利于调试的代码
-     */
-    constexpr inline auto is_debug{false};
+        true
 #endif
+    };
+    /**
+     * @brief 判断是否以release模式编译
+     *
+     * @note 这会禁用断言等功能
+     */
+    constexpr inline bool is_release{
 #ifdef NDEBUG
-    /**
-     * @brief 判断是否以release模式编译
-     *
-     * @note 这会禁用断言等功能
-     */
-    constexpr inline auto is_release{true};
-#else
-    /**
-     * @brief 判断是否以release模式编译
-     *
-     * @note 这会禁用断言等功能
-     */
-    constexpr inline auto is_release{false};
+        true
 #endif
+    };
+}  // namespace cppfastbox
+
+// 编译时已知的cpu flag
+namespace cppfastbox::cpu_flags
+{
+    // 是否支持sse指令集
+    constexpr inline bool sse_support{
+#ifdef __SSE__
+        true
+#endif
+    };
+
+    // 是否支持sse2指令集
+    constexpr inline bool sse2_support{
+#ifdef __SSE2__
+        true
+#endif
+    };
+
+    // 是否支持sse3指令集
+    constexpr inline bool sse3_support{
+#ifdef __SSE3__
+        true
+#endif
+    };
+
+    // 是否支持ssse3指令集
+    constexpr inline bool ssse3_support{
+#ifdef __SSSE3__
+        true
+#endif
+    };
+
+    // 是否支持sse4.1指令集
+    constexpr inline bool sse4_1_support{
+#ifdef __SSE4_1__
+        true
+#endif
+    };
+
+    // 是否支持sse4.2指令集
+    constexpr inline bool sse4_2_support{
+#ifdef __SSE4_2__
+        true
+#endif
+    };
+
+    // 是否支持avx指令集
+    constexpr inline bool avx_support{
+#ifdef __AVX__
+        true
+#endif
+    };
+
+    // 是否支持avx2指令集
+    constexpr inline bool avx2_support{
+#ifdef __AVX2__
+        true
+#endif
+    };
+
+    // 是否支持avx512f指令集
+    constexpr inline bool avx512f_support{
+#if defined(__AVX512F__)
+        true
+#endif
+    };
+
+    // 是否支持avx512bw指令集
+    constexpr inline bool avx512bw_support{
+#if defined(__AVX512BW__)
+        true
+#endif
+    };
+
+    // 是否支持avx512vl指令集
+    constexpr inline bool avx512vl_support{
+#if defined(__AVX512VL__)
+        true
+#endif
+    };
+
+    // 是否支持avx512dq指令集
+    constexpr inline bool avx512dq_support{
+#if defined(__AVX512DQ__)
+        true
+#endif
+    };
+
+    // 是否支持avx512vbmi指令集
+    constexpr inline bool avx512vbmi_support{
+#if defined(__AVX512VBMI__)
+        true
+#endif
+    };
+
+    // 是否支持wasm simd128指令集
+    constexpr inline bool wasm_simd128_support{
+#if defined(__wasm_simd128__)
+        true
+#endif
+    };
+
+    // 是否支持arm neon指令集
+    constexpr inline bool neon_support{
+#ifdef __ARM_NEON
+        true
+#endif
+    };
+
+    // 是否支持arm sve指令集
+    constexpr inline bool sve_support{
+#ifdef __ARM_FEATURE_SVE
+        true
+#endif
+    };
+
+    // 是否支持arm sve2指令集
+    constexpr inline bool sve2_support{
+#ifdef __ARM_FEATURE_SVE2
+        true
+#endif
+    };
+
+    // 是否支持loongarch sx指令集
+    constexpr inline bool lsx_support{
+#ifdef __loongarch_sx
+        true
+#endif
+    };
+
+    // 是否支持loongarch asx指令集
+    constexpr inline bool lasx_support{
+#ifdef __loongarch_asx
+        true
+#endif
+    };
+}  // namespace cppfastbox::cpu_flags
+
+namespace cppfastbox
+{
+    namespace detail
+    {
+        consteval inline ::std::size_t native_vector_max_size() noexcept
+        {
+            if constexpr(::cppfastbox::cpu_flags::avx512f_support) { return 64; }
+            else if constexpr(::cppfastbox::cpu_flags::avx_support) { return 32; }
+            else if constexpr(::cppfastbox::cpu_flags::sse_support) { return 16; }
+            else if constexpr(::cppfastbox::cpu_flags::sve_support) { return 256; }
+            else if constexpr(::cppfastbox::cpu_flags::neon_support) { return 16; }
+            else if constexpr(::cppfastbox::cpu_flags::lasx_support) { return 32; }
+            else if constexpr(::cppfastbox::cpu_flags::lsx_support) { return 16; }
+            else if constexpr(::cppfastbox::cpu_flags::wasm_simd128_support) { return 16; }
+            else { return 0; }
+        }
+
+        consteval inline ::std::size_t native_vector_max_ls_size() noexcept
+        {
+            if constexpr(::cppfastbox::cpu_flags::avx512f_support) { return 64; }
+            else if constexpr(::cppfastbox::cpu_flags::avx_support) { return 32; }
+            else if constexpr(::cppfastbox::cpu_flags::sse_support) { return 16; }
+            else if constexpr(::cppfastbox::cpu_flags::sve_support) { return 32; }   //< 编译器只生成ldp和stp
+            else if constexpr(::cppfastbox::cpu_flags::neon_support) { return 32; }  //< ldp和stp可以同时处理两个128位向量
+            else if constexpr(::cppfastbox::cpu_flags::lasx_support) { return 32; }
+            else if constexpr(::cppfastbox::cpu_flags::lsx_support) { return 16; }
+            else if constexpr(::cppfastbox::cpu_flags::wasm_simd128_support) { return 16; }
+            else { return 0; }
+        }
+    }  // namespace detail
+
+    // 硬件支持的最大向量大小，若硬件不支持向量化则为0
+    constexpr inline auto native_vector_max_size{::cppfastbox::detail::native_vector_max_size()};
+    // 单指令可以读写的最大向量大小，若硬件不支持向量化则为0
+    constexpr inline auto native_vector_max_ls_size{::cppfastbox::detail::native_vector_max_ls_size()};
+    // 是否支持向量化
+    constexpr inline auto simd_support{::cppfastbox::native_vector_max_size != 0};
 }  // namespace cppfastbox
