@@ -125,8 +125,9 @@ namespace cppfastbox
      * @tparam leaf 页数
      */
     template <::std::size_t leaf>
-    constexpr inline auto get_native_os_name{::cppfastbox::operating_system_name[leaf * ::std::to_underlying(::cppfastbox::operating_system::os_num) +
-                                                                               ::std::to_underlying(::cppfastbox::operating_system::native)]};
+    constexpr inline auto get_native_os_name{
+        ::cppfastbox::operating_system_name[leaf * ::std::to_underlying(::cppfastbox::operating_system::os_num) +
+                                            ::std::to_underlying(::cppfastbox::operating_system::native)]};
 
     // 当前cpu架构
     enum class cpu_arch : ::std::size_t
@@ -249,13 +250,13 @@ namespace cppfastbox
     using native_uint128_t = void;
 #endif
     // 是否支持__int128扩展
-    constexpr inline auto support_int128{!::std::is_void_v<native_int128_t>};
+    constexpr inline auto int128_support{!::std::is_void_v<native_int128_t>};
     // 判断给定类型是否是原生的int128类型
     template <typename type>
-    concept is_native_int128 = ::cppfastbox::support_int128 && ::std::same_as<type, native_int128_t>;
+    concept is_native_int128 = ::cppfastbox::int128_support && ::std::same_as<type, native_int128_t>;
     // 判断给定类型是否是原生的uint128类型
     template <typename type>
-    concept is_native_uint128 = ::cppfastbox::support_int128 && ::std::same_as<type, native_uint128_t>;
+    concept is_native_uint128 = ::cppfastbox::int128_support && ::std::same_as<type, native_uint128_t>;
 
 #ifdef __SIZEOF_FLOAT128__
     /**
@@ -273,10 +274,10 @@ namespace cppfastbox
     using native_float128_t = void;
 #endif
     // 是否支持__float128扩展
-    constexpr inline auto support_float128{!::std::is_void_v<native_float128_t>};
+    constexpr inline auto float128_support{!::std::is_void_v<native_float128_t>};
     // 判断给定类型是否是原生的float128类型
     template <typename type>
-    concept is_native_float128 = ::cppfastbox::support_float128 && ::std::same_as<type, native_float128_t>;
+    concept is_native_float128 = ::cppfastbox::float128_support && ::std::same_as<type, native_float128_t>;
 }  // namespace cppfastbox
 
 namespace cppfastbox

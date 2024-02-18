@@ -15,7 +15,7 @@ using namespace std;
 
 constexpr void test_int128() noexcept
 {
-    static_assert(!support_int128, NONSUPPORT "support_int128 is true");
+    static_assert(!int128_support, NONSUPPORT "int128_support is true");
     static_assert(is_void_v<native_int128_t>, NONSUPPORT "native_int128_t is not void");
     static_assert(is_void_v<native_uint128_t>, NONSUPPORT "native_uint128_t is not void");
     static_assert(!is_native_int128<void>, NONSUPPORT "void meets is_native_int128 constraint");
@@ -28,7 +28,7 @@ constexpr void test_int128() noexcept
 
 constexpr void test_float128() noexcept
 {
-    static_assert(!support_float128, NONSUPPORT "support_float128 is true");
+    static_assert(!float128_support, NONSUPPORT "float128_support is true");
     static_assert(is_void_v<native_float128_t>, NONSUPPORT "native_float128_t is not void");
     static_assert(!is_native_float128<void>, NONSUPPORT "void meets is_native_float128 constraint");
 }

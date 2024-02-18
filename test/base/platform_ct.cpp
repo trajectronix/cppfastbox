@@ -15,13 +15,13 @@ using namespace std;
 constexpr void test_int128() noexcept
 {
 #ifdef __SIZEOF_INT128__
-    static_assert(support_int128, SUPPORT "support_int128 is false");
+    static_assert(int128_support, SUPPORT "int128_support is false");
     static_assert(same_as<native_int128_t, __int128_t>, SUPPORT "native_int128_t is not __int128_t");
     static_assert(same_as<native_uint128_t, __uint128_t>, SUPPORT "native_uint128_t is not __uint128_t");
     static_assert(is_native_int128<native_int128_t>, SUPPORT "native_int128_t does not meet is_native_int128 constraint");
     static_assert(is_native_uint128<native_uint128_t>, SUPPORT "native_uint128_t does not meet is_native_uint128 constraint");
 #else
-    static_assert(!support_int128, NONSUPPORT "support_int128 is true");
+    static_assert(!int128_support, NONSUPPORT "int128_support is true");
     static_assert(is_void_v<native_int128_t>, NONSUPPORT "native_int128_t is not void");
     static_assert(is_void_v<native_uint128_t>, NONSUPPORT "native_uint128_t is not void");
     static_assert(!is_native_int128<void>, NONSUPPORT "void meets is_native_int128 constraint");
@@ -38,12 +38,12 @@ constexpr void test_int128() noexcept
 constexpr void test_float128() noexcept
 {
 #ifdef __SIZEOF_FLOAT128__
-    static_assert(support_float128, SUPPORT "support_float128 is false");
+    static_assert(float128_support, SUPPORT "float128_support is false");
     static_assert(same_as<native_float128_t, __float128>, SUPPORT "native_float128_t is not __float128");
     static_assert(is_native_float128<__float128>, SUPPORT "__float128 does not meet is_native_float128 constraint");
 #else
-    static_assert(!support_float128, NONSUPPORT "support_float128 is true");
-    static_assert(is_void_v<native_float128_t> , NONSUPPORT "native_float128_t is not void");
+    static_assert(!float128_support, NONSUPPORT "float128_support is true");
+    static_assert(is_void_v<native_float128_t>, NONSUPPORT "native_float128_t is not void");
     static_assert(!is_native_float128<void>, NONSUPPORT "void meets is_native_float128 constraint");
 #endif
 }

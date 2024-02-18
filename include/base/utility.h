@@ -193,13 +193,13 @@ namespace cppfastbox
      *
      * @note 在不支持__int128扩展的机器上为void
      */
-    using uint128_t = ::std::conditional_t<::cppfastbox::support_int128, ::cppfastbox::detail::uint128_t_impl, void>;
+    using uint128_t = ::std::conditional_t<::cppfastbox::int128_support, ::cppfastbox::detail::uint128_t_impl, void>;
     /**
      * @brief 通过内建类型合成的__int128_t
      *
      * @note 在不支持__int128扩展的机器上为void
      */
-    using int128_t = ::std::conditional_t<::cppfastbox::support_int128, ::cppfastbox::detail::int128_t_impl, void>;
+    using int128_t = ::std::conditional_t<::cppfastbox::int128_support, ::cppfastbox::detail::int128_t_impl, void>;
 }  // namespace cppfastbox
 
 namespace cppfastbox
