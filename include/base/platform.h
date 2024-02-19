@@ -6,6 +6,12 @@
  *
  */
 #pragma once
+#ifndef __cplusplus
+#error We must use cppfastbox with c++ compiler
+#endif
+#if __cplusplus < 202300
+#error The c++ compiler does not support c++23 standard
+#endif
 #include <cstddef>
 #include <utility>
 #include <bit>
@@ -26,7 +32,7 @@
 #elif defined(__wasm__) || defined(__wasm) || defined(__wasm64__) || defined(__wasm64)
     #define CPPFASTBOX_WASM
 #else
-    #error Unknown system
+    #error Unknown Operating System
 #endif
 
 #ifdef __i386__
@@ -53,6 +59,8 @@
     #define CPPFASTBOX_CLANG
 #elifdef __GNUC__
     #define CPPFASTBOX_GCC
+#else
+#error Unknown c++ compiler
 #endif
 
 // Windows下的调用协议
@@ -218,6 +226,8 @@ namespace cppfastbox
     constexpr inline auto is_32bit{sizeof(::std::size_t) == 4};
     // 是否是64位cpu
     constexpr inline auto is_64bit{sizeof(::std::size_t) == 8};
+    // 仅支持32位或64位cpu
+    static_assert(::cppfastbox::is_32bit || ::cppfastbox::is_64bit, "Cppfastbox only support 32-bit or 64-bit cpu.");
     // 是否是小端
     constexpr inline auto is_little_endian{::std::endian::native == ::std::endian::little};
     // 是否是大端
@@ -479,8 +489,15 @@ namespace cppfastbox
     constexpr inline auto native_vector_ls_max_size{::cppfastbox::detail::native_vector_ls_max_size()};
     // 是否支持向量化
     constexpr inline auto simd_support{::cppfastbox::native_vector_max_size != 0};
+    // 32位程序不应使用64位cpu专有的向量指令集
+    static_assert(::cppfastbox::is_64bit || (::cppfastbox::is_32bit && ::cppfastbox::native_vector_max_size <= 16),
+                  "32-bit programs should not use the vector instruction set specific to 64-bit cpus.");
     // 硬件支持的最大通道大小
     constexpr inline auto native_lane_max_size{::cppfastbox::max(::cppfastbox::native_vector_max_size, sizeof(::std::size_t))};
     // 硬件支持的最大读写通道大小
     constexpr inline auto native_ls_lane_max_size{::cppfastbox::max(::cppfastbox::native_vector_ls_max_size, sizeof(::std::size_t))};
+    // cppfastbox支持的最大通道大小
+    constexpr inline auto lane_max_size_support{64zu};
+    // cppfastbox支持的最大读写通道大小
+    constexpr inline auto ls_lane_max_size_support{64zu};
 }  // namespace cppfastbox
