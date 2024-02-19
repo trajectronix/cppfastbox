@@ -1,3 +1,4 @@
+-- Copyright (c) 2024-present Trajectronix Open Source Group
 target("platform_ct")
     set_default(false)
     set_kind("object")

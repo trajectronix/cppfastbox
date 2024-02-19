@@ -2,7 +2,7 @@
  * @file utility_ct.cpp
  * @brief utility.h编译时测试
  *
- * Copyright 2024-present Trajectronix Open Source Group
+ * @copyright Copyright (c) 2024-present Trajectronix Open Source Group
  *
  */
 #include "../../include/base/utility.h"

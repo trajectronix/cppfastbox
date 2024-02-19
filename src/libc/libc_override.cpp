@@ -1,3 +1,10 @@
+/**
+ * @file libc_override.cpp
+ * @brief 在独立的翻译单元中覆盖strlen和wcslen
+ *
+ * @copyright Copyright (c) 2024
+ *
+ */
 #include "../../include/libc/override.h"
 
 extern "C"

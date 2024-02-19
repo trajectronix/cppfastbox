@@ -1,3 +1,4 @@
+-- Copyright (c) 2024-present Trajectronix Open Source Group
 target("container")
     set_kind("headeronly")
     add_headerfiles("container/*.h", {prefixdir = "container"})

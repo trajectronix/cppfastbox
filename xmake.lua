@@ -1,3 +1,4 @@
+-- Copyright (c) 2024-present Trajectronix Open Source Group
 set_xmakever("2.6.9")
 set_project("cppfastbox")
 set_version("0.0.1", {build = "%Y%m%d%H%M"})

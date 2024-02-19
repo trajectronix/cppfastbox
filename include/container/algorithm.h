@@ -2,7 +2,7 @@
  * @file algorithm.h
  * @brief
  *
- * @copyright Copyright 2024-present Trajectronix Open Source Group
+ * @copyright Copyright (c) 2024-present Trajectronix Open Source Group
  *
  */
 #pragma once

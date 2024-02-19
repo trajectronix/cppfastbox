@@ -2,7 +2,7 @@
  * @file utility.h
  * @brief 实用工具定义
  *
- * @copyright Copyright 2024-present Trajectronix Open Source Group
+ * @copyright Copyright (c) 2024-present Trajectronix Open Source Group
  *
  */
 #pragma once

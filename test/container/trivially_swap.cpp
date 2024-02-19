@@ -2,7 +2,7 @@
  * @file trivially_swap.cpp
  * @brief trivially_swap运行时测试
  *
- * @copyright Copyright 2024-present Trajectronix Open Source Group
+ * @copyright Copyright (c) 2024-present Trajectronix Open Source Group
  *
  */
 #include "../../include/container/algorithm.h"

@@ -2,15 +2,15 @@
  * @file platform.h
  * @brief 平台相关定义
  *
- * @copyright Copyright 2024-present Trajectronix Open Source Group
+ * @copyright Copyright (c) 2024-present Trajectronix Open Source Group
  *
  */
 #pragma once
 #ifndef __cplusplus
-#error We must use cppfastbox with c++ compiler
+    #error We must use cppfastbox with c++ compiler
 #endif
 #if __cplusplus < 202300
-#error The c++ compiler does not support c++23 standard
+    #error The c++ compiler does not support c++23 standard
 #endif
 #include <cstddef>
 #include <utility>
@@ -60,7 +60,7 @@
 #elifdef __GNUC__
     #define CPPFASTBOX_GCC
 #else
-#error Unknown c++ compiler
+    #error Unknown c++ compiler
 #endif
 
 // Windows下的调用协议

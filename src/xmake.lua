@@ -1,3 +1,4 @@
+-- Copyright (c) 2024-present Trajectronix Open Source Group
 target("libc-lib")
     add_files("libc/*.cpp")
     set_kind("$(kind)")

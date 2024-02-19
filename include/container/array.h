@@ -2,7 +2,7 @@
  * @file array.h
  * @brief 数组及多维数组实现
  *
- * @copyright Copyright 2024-present Trajectronix Open Source Group
+ * @copyright Copyright (c) 2024-present Trajectronix Open Source Group
  *
  */
 #pragma once
@@ -512,7 +512,7 @@ namespace cppfastbox
             {
                 if constexpr(::cppfastbox::trivially_equality_comparable<value_type>)
                 {
-                    return __builtin_memcmp(::std::addressof(a), ::std::addressof(b), size()* sizeof(value_type)) == 0;
+                    return __builtin_memcmp(::std::addressof(a), ::std::addressof(b), size() * sizeof(value_type)) == 0;
                 }
                 else
                 {

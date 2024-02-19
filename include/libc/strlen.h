@@ -1,3 +1,10 @@
+/**
+ * @file strlen.h
+ * @brief 实现strlen
+ *
+ * @copyright Copyright (c) 2024-present Trajectronix Open Source Group
+ *
+ */
 #pragma once
 #include <bit>
 #include <cstring>

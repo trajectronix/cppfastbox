@@ -2,7 +2,7 @@
  * @file platform_ct.cpp
  * @brief platform.h编译时测试
  *
- * @copyright Copyright 2024-present Trajectronix Open Source Group
+ * @copyright Copyright (c) 2024-present Trajectronix Open Source Group
  *
  */
 #include "../../include/base/platform.h"

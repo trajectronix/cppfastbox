@@ -2,7 +2,7 @@
  * @file assert.h
  * @brief 断言实现
  *
- * @copyright Copyright 2024-present Trajectronix Open Source Group
+ * @copyright Copyright (c) 2024-present Trajectronix Open Source Group
  *
  */
 #pragma once
@@ -76,7 +76,10 @@ namespace cppfastbox
         if consteval { ::cppfastbox::constexpr_assert(expression); }
         else
         {
-            if(!expression) { ::cppfastbox::detail::assert_failed(location.file_name(), location.line(), location.column(), location.function_name()); }
+            if(!expression)
+            {
+                ::cppfastbox::detail::assert_failed(location.file_name(), location.line(), location.column(), location.function_name());
+            }
         }
     }
 }  // namespace cppfastbox
