@@ -1,5 +1,6 @@
 /**
  * @file platform_ct_nonextension.cpp
+ * @brief 无128扩展的platform.h编译时测试
  *
  * @copyright Copyright 2024-present Trajectronix Open Source Group
  *

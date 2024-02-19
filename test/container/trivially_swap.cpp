@@ -1,3 +1,10 @@
+/**
+ * @file trivially_swap.cpp
+ * @brief trivially_swap运行时测试
+ *
+ * @copyright Copyright 2024-present Trajectronix Open Source Group
+ *
+ */
 #include "../../include/container/algorithm.h"
 #ifdef CPPFASTBOX_HOSTED_TEST
     #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
@@ -11,6 +18,7 @@ template <::std::size_t size>
 struct test_integer_impl
 {
     using type = fixed_size_integer_t<true, size>;
+    // 填充位不应被修改，用于检测过度写入
     type a{}, padding_a{}, b{}, padding_b{};
 
     [[gnu::noinline]] test_integer_impl(type a_in, type b_in) noexcept : a{a_in}, b{b_in} {}

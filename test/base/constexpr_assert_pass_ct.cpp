@@ -1,3 +1,10 @@
+/**
+ * @file constexpr_assert_pass_ct.cpp
+ * @brief constexpr_assert编译时测试
+ *
+ * @copyright Copyright 2024-present Trajectronix Open Source Group
+ *
+ */
 #include "../../include/base/assert.h"
 using namespace cppfastbox;
 

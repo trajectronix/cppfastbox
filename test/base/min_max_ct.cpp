@@ -1,3 +1,10 @@
+/**
+ * @file min_max_ct.cpp
+ * @brief min和max函数编译时测试
+ *
+ * @copyright Copyright 2024-present Trajectronix Open Source Group
+ *
+ */
 #include "../../include/base/min_max.h"
 #include <functional>
 using namespace cppfastbox;
