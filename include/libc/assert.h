@@ -12,15 +12,17 @@
     #include <cstdio>
 #endif
 #include "../base/assert.h"
+#if __has_include(<charconv>)
 // 实现itoa后替换此处
 #include <charconv>
+#endif
 #undef assert
 
 namespace cppfastbox
 {
     namespace detail
     {
-#if __has_include(<cstdio>)
+#if __has_include(<cstdio>) && __has_include(<charconv>)
         [[noreturn]] inline void assert_failed(const char* file, unsigned line, unsigned colum, const char* function) noexcept
         {
             ::fwrite("Assert failed: In file ", 1, 23, stderr);
