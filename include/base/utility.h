@@ -367,7 +367,7 @@ namespace cppfastbox
      * @brief 硬件支持的读写通道
      *
      */
-    struct native_ls_lanes
+    struct alignas(::cppfastbox::is_64bit ? 64 : 32) native_ls_lanes
     {
         using l64_t [[gnu::vector_size(64)]] = ::std::uint64_t;  //< 64字节通道类型
         using l32_t [[gnu::vector_size(32)]] = ::std::uint64_t;  //< 32字节通道类型
@@ -390,22 +390,86 @@ namespace cppfastbox
      *
      * @tparam lane_max_size 分解时最大读写通道的大小
      * @param size 要分解的读写操作的字节数
+     * @note 分解时会尝试向量化，使用的向量大小等同于`lane_max_size`
      */
     template <::std::size_t lane_max_size = ::cppfastbox::native_ls_lane_max_size>
     constexpr inline auto split_into_native_ls_lanes(::std::size_t size) noexcept
     {
+        static_assert(lane_max_size >= 4, "The cpu must support 4 bytes load and store.");
+        static_assert(lane_max_size <= ::cppfastbox::ls_lane_max_size_support,
+                      "Cppfastbox does not support lanes wider than cppfastbox::ls_lane_max_size_support.");
         ::cppfastbox::native_ls_lanes lanes{};
-        lanes.l64 = lane_max_size >= 64 ? size >> 6 : 0;
-        size -= lanes.l64 * 64;
-        lanes.l32 = lane_max_size >= 32 ? size >> 5 : 0;
-        size -= lanes.l32 * 32;
-        lanes.l16 = lane_max_size >= 16 ? size >> 4 : 0;
-        size -= lanes.l16 * 16;
-        lanes.l8 = lane_max_size >= 8 ? size >> 3 : 0;
-        size -= lanes.l8 * 8;
-        lanes.l4 = size >> 2;
-        lanes.l2 = (size & 2) >> 1;
-        lanes.l1 = size & 1;
+
+        // 为调试模式优化代码生成
+        if constexpr(lane_max_size == 64)
+        {
+            if consteval
+            {
+                lanes.l64 = size >> 6;
+                lanes.l32 = (size >> 5) & 1;
+                lanes.l16 = (size >> 4) & 1;
+                lanes.l8 = (size >> 3) & 1;
+                lanes.l4 = (size >> 2) & 1;
+                lanes.l2 = (size >> 1) & 1;
+                lanes.l1 = size & 1;
+            }
+            else
+            {
+                using v [[gnu::vector_size(64)]] = ::std::size_t;
+                v vsize{size, size, size, size, size, size, size, size};
+                vsize >>= v{0, 0, 1, 2, 3, 4, 5, 6};
+                vsize &= v{0, 1, 1, 1, 1, 1, 1, -1zu};
+                __builtin_memcpy(&lanes, &vsize, 64);
+            }
+        }
+        else if constexpr(lane_max_size == 32)
+        {
+            if consteval
+            {
+                lanes.l32 = size >> 5;
+                lanes.l16 = (size >> 4) & 1;
+                lanes.l8 = (size >> 3) & 1;
+                lanes.l4 = (size >> 2) & 1;
+                lanes.l2 = (size >> 1) & 1;
+                lanes.l1 = size & 1;
+            }
+            else
+            {
+                using v [[gnu::vector_size(32)]] = ::std::size_t;
+                constexpr v vand{1, 1, 1, 1};
+                v vsize1{size, size, size, size};
+                v vsize2{size, size, size, size};
+                vsize1 >>= v{3, 4, 5, 64};
+                vsize2 >>= v{0, 0, 1, 2};
+                vsize1 &= vand;
+                vsize2 &= vand;
+                __builtin_memcpy(&lanes, &vsize1, 32);
+                __builtin_memcpy(&lanes.l4, &vsize2, 32);
+            }
+        }
+        // 向量化效果不理想
+        else if constexpr(lane_max_size == 16)
+        {
+            lanes.l16 = size >> 4;
+            lanes.l8 = (size >> 3) & 1;
+            lanes.l4 = (size >> 2) & 1;
+            lanes.l2 = (size >> 1) & 1;
+            lanes.l1 = size & 1;
+        }
+        // 向量化不适用
+        else if constexpr(lane_max_size == 8)
+        {
+            lanes.l8 = size >> 3;
+            lanes.l4 = (size >> 2) & 1;
+            lanes.l2 = (size >> 1) & 1;
+            lanes.l1 = size & 1;
+        }
+        else
+        {
+            lanes.l4 = size >> 2;
+            lanes.l2 = (size >> 1) & 1;
+            lanes.l1 = size & 1;
+        }
         return lanes;
     }
 }  // namespace cppfastbox
