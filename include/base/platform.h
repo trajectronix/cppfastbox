@@ -261,13 +261,13 @@ namespace cppfastbox
     using native_uint128_t = void;
 #endif
     // 是否支持__int128扩展
-    constexpr inline auto int128_support{!::std::is_void_v<native_int128_t>};
+    constexpr inline auto int128_support{!::std::is_void_v<::cppfastbox::native_int128_t>};
     // 判断给定类型是否是原生的int128类型
     template <typename type>
-    concept is_native_int128 = ::cppfastbox::int128_support && ::std::same_as<type, native_int128_t>;
+    concept is_native_int128 = ::cppfastbox::int128_support && ::std::same_as<type, ::cppfastbox::native_int128_t>;
     // 判断给定类型是否是原生的uint128类型
     template <typename type>
-    concept is_native_uint128 = ::cppfastbox::int128_support && ::std::same_as<type, native_uint128_t>;
+    concept is_native_uint128 = ::cppfastbox::int128_support && ::std::same_as<type, ::cppfastbox::native_uint128_t>;
 
 #ifdef __SIZEOF_FLOAT128__
     /**
@@ -285,10 +285,10 @@ namespace cppfastbox
     using native_float128_t = void;
 #endif
     // 是否支持__float128扩展
-    constexpr inline auto float128_support{!::std::is_void_v<native_float128_t>};
+    constexpr inline auto float128_support{!::std::is_void_v<::cppfastbox::native_float128_t>};
     // 判断给定类型是否是原生的float128类型
     template <typename type>
-    concept is_native_float128 = ::cppfastbox::float128_support && ::std::same_as<type, native_float128_t>;
+    concept is_native_float128 = ::cppfastbox::float128_support && ::std::same_as<type, ::cppfastbox::native_float128_t>;
 }  // namespace cppfastbox
 
 namespace cppfastbox

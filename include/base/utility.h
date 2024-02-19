@@ -84,7 +84,9 @@ namespace cppfastbox::detail
             else if constexpr(size == 2) { return ::std::int16_t{}; }
             else if constexpr(size == 4) { return ::std::int32_t{}; }
             else if constexpr(size == 8) { return ::std::int64_t{}; }
+#ifdef __SIZEOF_INT128__
             else if constexpr(size == 16) { return ::cppfastbox::native_int128_t{}; }
+#endif
         }
         else
         {
@@ -92,7 +94,9 @@ namespace cppfastbox::detail
             else if constexpr(size == 2) { return ::std::uint16_t{}; }
             else if constexpr(size == 4) { return ::std::uint32_t{}; }
             else if constexpr(size == 8) { return ::std::uint64_t{}; }
+#ifdef __SIZEOF_INT128__
             else if constexpr(size == 16) { return ::cppfastbox::native_uint128_t{}; }
+#endif
         }
     }
 
