@@ -77,6 +77,7 @@
 // 恒内联函数
 #define CPPFASTBOX_ALWAYS_INLINE [[using gnu: always_inline, artificial]]
 
+// 操作系统
 namespace cppfastbox
 {
     // 受支持的操作系统
@@ -154,7 +155,11 @@ namespace cppfastbox
         static_assert(id < ::cppfastbox::os_num, "The parma \"os\" is out of range");
         return ::cppfastbox::os_name[leaf * ::cppfastbox::os_num + id];
     }
+}  // namespace cppfastbox
 
+// cpu架构
+namespace cppfastbox
+{
     // 受支持的cpu架构
     enum class cpu_arch : ::std::size_t
     {
@@ -166,7 +171,7 @@ namespace cppfastbox
         la64,
         wasm,
         wasm64,
-        arch_num,  //< 支持的cpu架构数
+        cpu_arch_num,  //< 支持的cpu架构数
 #ifdef CPPFASTBOX_X86
         native = x86
 #elifdef CPPFASTBOX_X64
@@ -186,7 +191,7 @@ namespace cppfastbox
 #endif
     };
     //  支持的cpu架构数
-    constexpr inline auto cpu_arch_num{::std::to_underlying(::cppfastbox::cpu_arch::arch_num)};
+    constexpr inline auto cpu_arch_num{::std::to_underlying(::cppfastbox::cpu_arch::cpu_arch_num)};
     // cpu架构名称
     constexpr const inline char* cpu_arch_name[]{"x86",       "x64",         "arm",         "arm64",         "la",     "la64",
                                                  "wasm",      "wasm64",      "X86",         "X86_64",        "ARM",    "AArch64",
@@ -197,6 +202,7 @@ namespace cppfastbox
     static_assert(sizeof(::cppfastbox::cpu_arch_name) / sizeof(char*) % ::cppfastbox::cpu_arch_num == 0);
     // 表cpu_arch_name的页数
     constexpr inline auto cpu_arch_leaf_num{sizeof(::cppfastbox::cpu_arch_name) / sizeof(char*) / ::cppfastbox::cpu_arch_num};
+
     /**
      * @brief 判断当前cpu架构是否是给定cpu架构
      *
@@ -223,7 +229,11 @@ namespace cppfastbox
         static_assert(id < ::cppfastbox::cpu_arch_num, "The parma \"cpu_arch\" is out of range");
         return ::cppfastbox::cpu_arch_name[leaf * ::cppfastbox::cpu_arch_num + id];
     }
+}  // namespace cppfastbox
 
+// 编译器
+namespace cppfastbox
+{
     // 受支持的编译器
     enum class compiler : ::std::size_t
     {
@@ -244,6 +254,7 @@ namespace cppfastbox
     static_assert(sizeof(::cppfastbox::compiler_name) / sizeof(char*) % ::cppfastbox::compiler_num == 0);
     // 表compiler_name的页数
     constexpr inline auto compiler_leaf_num{sizeof(::cppfastbox::compiler_name) / sizeof(char*) / ::cppfastbox::compiler_num};
+
     /**
      * @brief 判断当前编译器是否是给定编译器
      *
@@ -270,7 +281,11 @@ namespace cppfastbox
         static_assert(id < ::cppfastbox::compiler_num, "The parma \"compiler\" is out of range");
         return ::cppfastbox::compiler_name[leaf * ::cppfastbox::compiler_num + id];
     }
+}  // namespace cppfastbox
 
+// cpu指令集
+namespace cppfastbox
+{
     // 受支持的cpu指令集
     enum class cpu_flag : ::std::size_t
     {
@@ -287,22 +302,24 @@ namespace cppfastbox
         avx512vl,
         avx512dq,
         avx512vbmi,
-        wasm128,
         neon,
         sve,
         sve2,
         lsx,
         lasx,
+        wasm128,
         cpu_flag_num  //< 支持的cpu指令集数量
     };
     //  支持的cpu指令集数量
     constexpr inline auto cpu_flag_num{::std::to_underlying(::cppfastbox::cpu_flag::cpu_flag_num)};
     // cpu指令集名称
     constexpr const inline char* cpu_flag_name[]{
-        "sse",      "sse2",       "sse3",         "ssse3",   "sse4_1", "sse4_2", "avx",  "avx2",    "avx512f",  "avx512bw",
-        "avx512vl", "avx512dq",   "avx512vbmi",   "wasm128", "neon",   "sve",    "sve2", "lsx",     "lasx",     "SSE",
-        "SSE2",     "SSE3",       "SSSE3",        "SSE4.1",  "SSE4.2", "AVX",    "AVX2", "AVX512F", "AVX512BW", "AVX512VL",
-        "AVX512DQ", "AVX512VBMI", "Wasm Simd128", "Neon",    "SVE",    "SVE2",   "LSX",  "LASX"};
+        "sse",      "sse2",       "sse3",       "ssse3",  "sse4_1", "sse4_2", "avx",  "avx2",        "avx512f",  "avx512bw",
+        "avx512vl", "avx512dq",   "avx512vbmi", "neon",   "sve",    "sve2",   "lsx",  "lasx",        "wasm128",  "SSE",
+        "SSE2",     "SSE3",       "SSSE3",      "SSE4.1", "SSE4.2", "AVX",    "AVX2", "AVX512F",     "AVX512BW", "AVX512VL",
+        "AVX512DQ", "AVX512VBMI", "Neon",       "SVE",    "SVE2",   "LSX",    "LASX", "Wasm Simd128"};
+    //  保证表cpu_flag_name的元素数正确
+    static_assert(sizeof(::cppfastbox::cpu_flag_name) / sizeof(char*) % ::cppfastbox::cpu_flag_num == 0);
     // 表cpu_flag_name的页数
     constexpr inline auto cpu_flag_leaf_num{sizeof(::cppfastbox::cpu_flag_name) / sizeof(char*) / ::cppfastbox::cpu_flag_num};
 
@@ -322,6 +339,73 @@ namespace cppfastbox
     }
 }  // namespace cppfastbox
 
+// cpu家族
+namespace cppfastbox
+{
+    /**
+     * @brief 受支持的cpu家族
+     *
+     */
+    enum class cpu_family : ::std::size_t
+    {
+        x86,
+        arm,
+        la,
+        wasm,
+        cpu_family_num,  //< 支持的cpu家族数
+        native = ::std::to_underlying(::cppfastbox::cpu_arch::native) / 2
+    };
+
+    //  支持的cpu家族数
+    constexpr inline auto cpu_family_num{::std::to_underlying(::cppfastbox::cpu_family::cpu_family_num)};
+    // cpu家族名称
+    constexpr const inline char* cpu_family_name[]{"x86",
+                                                   "arm",
+                                                   "la",
+                                                   "wasm",
+                                                   "x86 family",
+                                                   "arm family",
+                                                   "la family",
+                                                   "wasm family",
+                                                   "X86 Family",
+                                                   "ARM Family",
+                                                   "WebAssembly Family",
+                                                   "LoongArch Family"};
+
+    //  保证表cpu_family_name的元素数正确
+    static_assert(sizeof(::cppfastbox::cpu_family_name) / sizeof(char*) % ::cppfastbox::cpu_family_num == 0);
+    // 表cpu_family_name的页数
+    constexpr inline auto cpu_family_leaf_num{sizeof(::cppfastbox::cpu_family_name) / sizeof(char*) / ::cppfastbox::cpu_family_num};
+
+    /**
+     * @brief 判断当前cpu家族是否是给定cpu家族
+     *
+     * @tparam cpu_family cpu家族枚举
+     */
+    template <::cppfastbox::cpu_family cpu_family>
+    consteval inline auto is_cpu_family()
+    {
+        static_assert(::std::to_underlying(cpu_family) < ::cppfastbox::cpu_family_num, "The parma \"cpu_family\" is out of range");
+        return cpu_family == ::cppfastbox::cpu_family::native;
+    };
+
+    /**
+     * @brief 获取cpu家族名称
+     *
+     * @tparam leaf 页数
+     * @tparam cpu_family cpu家族枚举
+     */
+    template <::std::size_t leaf, ::cppfastbox::cpu_family cpu_family = ::cppfastbox::cpu_family::native>
+    consteval inline auto get_cpu_family_name() noexcept
+    {
+        constexpr auto id{::std::to_underlying(cpu_family)};
+        static_assert(leaf < ::cppfastbox::cpu_family_leaf_num, "The parma \"leaf\" is out of range");
+        static_assert(id < ::cppfastbox::cpu_family_num, "The parma \"cpu_family\" is out of range");
+        return ::cppfastbox::cpu_family_name[leaf * ::cppfastbox::cpu_family_num + id];
+    }
+}  // namespace cppfastbox
+
+// 字长和端序
 namespace cppfastbox
 {
     // 是否是32位cpu
@@ -334,7 +418,11 @@ namespace cppfastbox
     constexpr inline auto is_little_endian{::std::endian::native == ::std::endian::little};
     // 是否是大端
     constexpr inline auto is_big_endian{::std::endian::native == ::std::endian::big};
+}  // namespace cppfastbox
 
+// 扩展类型
+namespace cppfastbox
+{
 #ifdef __SIZEOF_INT128__
     /**
      * @brief 原生的int128类型
@@ -393,6 +481,7 @@ namespace cppfastbox
     concept is_native_float128 = ::cppfastbox::float128_support && ::std::same_as<type, ::cppfastbox::native_float128_t>;
 }  // namespace cppfastbox
 
+// 调试模式和发布模式
 namespace cppfastbox
 {
     /**
@@ -417,8 +506,8 @@ namespace cppfastbox
     };
 }  // namespace cppfastbox
 
-// 编译时已知的cpu flag
-namespace cppfastbox::cpu_flags
+// x86的cpu flag
+namespace cppfastbox::cpu_flags::x86
 {
     // 是否支持sse指令集
     constexpr inline bool sse_support{
@@ -511,49 +600,32 @@ namespace cppfastbox::cpu_flags
 #endif
     };
 
-    // 是否支持wasm simd128指令集
-    constexpr inline bool wasm128_support{
-#if defined(__wasm_simd128__)
-        true
-#endif
-    };
+    namespace detail
+    {
+        consteval inline ::std::size_t get_native_simd_max_size() noexcept
+        {
+            if constexpr(::cppfastbox::cpu_flags::x86::avx512f_support) { return 64; }
+            else if constexpr(::cppfastbox::cpu_flags::x86::avx_support) { return 32; }
+            else if constexpr(::cppfastbox::cpu_flags::x86::sse_support) { return 16; }
+            else { return 0; }
+        }
+    }  // namespace detail
 
-    // 是否支持arm neon指令集
-    constexpr inline bool neon_support{
-#ifdef __ARM_NEON
-        true
-#endif
-    };
+    // 是否支持标量的非对齐读写
+    constexpr inline bool unaligned_ls_support{true};
+    /**
+     * @brief 是否支持向量的非对齐读写
+     *
+     * @note sse3之前使用u系列指令加载对齐数据可能存在惩罚，故需要区分对齐和非对齐读写
+     */
+    constexpr inline bool unaligned_simd_ls_support{::cppfastbox::cpu_flags::x86::sse3_support};
+    // 硬件支持的最大向量大小，若硬件不支持向量化则为0
+    constexpr inline auto native_simd_max_size{::cppfastbox::cpu_flags::x86::detail::get_native_simd_max_size()};
+    // 单指令可以读写的最大向量大小，若硬件不支持向量化则为0
+    constexpr inline auto native_simd_ls_max_size{native_simd_max_size};
+}  // namespace cppfastbox::cpu_flags::x86
 
-    // 是否支持arm sve指令集
-    constexpr inline bool sve_support{
-#ifdef __ARM_FEATURE_SVE
-        true
-#endif
-    };
-
-    // 是否支持arm sve2指令集
-    constexpr inline bool sve2_support{
-#ifdef __ARM_FEATURE_SVE2
-        true
-#endif
-    };
-
-    // 是否支持loongarch sx指令集
-    constexpr inline bool lsx_support{
-#ifdef __loongarch_sx
-        true
-#endif
-    };
-
-    // 是否支持loongarch asx指令集
-    constexpr inline bool lasx_support{
-#ifdef __loongarch_asx
-        true
-#endif
-    };
-}  // namespace cppfastbox::cpu_flags
-
+// arm的cpu flag
 namespace cppfastbox::cpu_flags::arm
 {
     // 是否支持arm neon指令集
@@ -625,6 +697,7 @@ namespace cppfastbox::cpu_flags::arm
     // 表arch_name的页数
     constexpr inline auto arch_leaf_num{sizeof(::cppfastbox::cpu_flags::arm::arch_name) / sizeof(char*) /
                                         ::cppfastbox::cpu_flags::arm::arch_num};
+
     /**
      * @brief 判断当前arm架构是否是给定arm架构
      *
@@ -686,6 +759,7 @@ namespace cppfastbox::cpu_flags::arm
     // 表profile_name的页数
     constexpr inline auto profile_leaf_num{sizeof(::cppfastbox::cpu_flags::arm::profile_name) / sizeof(char*) /
                                            ::cppfastbox::cpu_flags::arm::profile_num};
+
     /**
      * @brief 判断当前arm配置是否是给定arm配置
      *
@@ -713,6 +787,16 @@ namespace cppfastbox::cpu_flags::arm
         return ::cppfastbox::cpu_flags::arm::profile_name[leaf * ::cppfastbox::cpu_flags::arm::profile_num + id];
     }
 
+    namespace detail
+    {
+        consteval inline ::std::size_t get_native_simd_max_size() noexcept
+        {
+            if constexpr(::cppfastbox::cpu_flags::arm::sve_support) { return 256; }
+            else if constexpr(::cppfastbox::cpu_flags::arm::neon_support) { return 16; }
+            else { return 0; }
+        }
+    }  // namespace detail
+
     // 是否支持标量的非对齐读写
     constexpr inline bool unaligned_ls_support{::std::to_underlying(::cppfastbox::cpu_flags::arm::arch::native) >=
                                                ::std::to_underlying(::cppfastbox::cpu_flags::arm::arch::armv6)};
@@ -722,54 +806,151 @@ namespace cppfastbox::cpu_flags::arm
         true
 #endif
     };
+    // 硬件支持的最大向量大小，若硬件不支持向量化则为0
+    constexpr inline auto native_simd_max_size{::cppfastbox::cpu_flags::arm::detail::get_native_simd_max_size()};
+    // 单指令可以读写的最大向量大小，若硬件不支持向量化则为0
+    constexpr inline auto native_simd_ls_max_size{::cppfastbox::cpu_flags::arm::native_simd_max_size == 0 ? 0zu : 32zu};
 };  // namespace cppfastbox::cpu_flags::arm
 
-namespace cppfastbox
+// loongarch的cpu flag
+namespace cppfastbox::cpu_flags::la
 {
+    // 是否支持loongarch sx指令集
+    constexpr inline bool lsx_support{
+#ifdef __loongarch_sx
+        true
+#endif
+    };
+
+    // 是否支持loongarch asx指令集
+    constexpr inline bool lasx_support{
+#ifdef __loongarch_asx
+        true
+#endif
+    };
+
     namespace detail
     {
-        consteval inline ::std::size_t get_native_vector_max_size() noexcept
+        consteval inline ::std::size_t get_native_simd_max_size() noexcept
         {
-            if constexpr(::cppfastbox::cpu_flags::avx512f_support) { return 64; }
-            else if constexpr(::cppfastbox::cpu_flags::avx_support) { return 32; }
-            else if constexpr(::cppfastbox::cpu_flags::sse_support) { return 16; }
-            else if constexpr(::cppfastbox::cpu_flags::arm::sve_support) { return 256; }
-            else if constexpr(::cppfastbox::cpu_flags::arm::neon_support) { return 16; }
-            else if constexpr(::cppfastbox::cpu_flags::lasx_support) { return 32; }
-            else if constexpr(::cppfastbox::cpu_flags::lsx_support) { return 16; }
-            else if constexpr(::cppfastbox::cpu_flags::wasm128_support) { return 16; }
-            else { return 0; }
-        }
-
-        consteval inline ::std::size_t get_native_vector_ls_max_size() noexcept
-        {
-            if constexpr(::cppfastbox::cpu_flags::avx512f_support) { return 64; }
-            else if constexpr(::cppfastbox::cpu_flags::avx_support) { return 32; }
-            else if constexpr(::cppfastbox::cpu_flags::sse_support) { return 16; }
-            else if constexpr(::cppfastbox::cpu_flags::sve_support) { return 32; }   //< 编译器只生成ldp和stp
-            else if constexpr(::cppfastbox::cpu_flags::neon_support) { return 32; }  //< ldp和stp可以同时处理两个128位向量
-            else if constexpr(::cppfastbox::cpu_flags::lasx_support) { return 32; }
-            else if constexpr(::cppfastbox::cpu_flags::lsx_support) { return 16; }
-            else if constexpr(::cppfastbox::cpu_flags::wasm128_support) { return 16; }
+            if constexpr(::cppfastbox::cpu_flags::la::lasx_support) { return 32; }
+            else if constexpr(::cppfastbox::cpu_flags::la::lsx_support) { return 16; }
             else { return 0; }
         }
     }  // namespace detail
 
+    // 是否支持标量的非对齐读写
+    constexpr inline bool unaligned_ls_support{true};  // TODO 确定何时硬件不支持非对齐读写
+    // 是否支持向量的非对齐读写
+    constexpr inline bool unaligned_simd_ls_support{true};  // TODO 尚未公布向量化指令集文档
     // 硬件支持的最大向量大小，若硬件不支持向量化则为0
-    constexpr inline auto native_vector_max_size{::cppfastbox::detail::get_native_vector_max_size()};
+    constexpr inline auto native_simd_max_size{::cppfastbox::cpu_flags::la::detail::get_native_simd_max_size()};
     // 单指令可以读写的最大向量大小，若硬件不支持向量化则为0
-    constexpr inline auto native_vector_ls_max_size{::cppfastbox::detail::get_native_vector_ls_max_size()};
+    constexpr inline auto native_simd_ls_max_size{::cppfastbox::cpu_flags::la::native_simd_max_size};
+}  // namespace cppfastbox::cpu_flags::la
+
+// wasm的cpu flag
+namespace cppfastbox::cpu_flags::wasm
+{
+    // 是否支持wasm simd128指令集
+    constexpr inline bool simd128_support{
+#if defined(__wasm_simd128__)
+        true
+#endif
+    };
+
+    namespace detail
+    {
+        consteval inline ::std::size_t get_native_simd_max_size() noexcept
+        {
+            if constexpr(::cppfastbox::cpu_flags::wasm::simd128_support) { return 16; }
+            else { return 0; }
+        }
+    }  // namespace detail
+
+    // 是否支持标量的非对齐读写
+    constexpr inline bool unaligned_ls_support{true};
+    // 是否支持向量的非对齐读写
+    constexpr inline bool unaligned_simd_ls_support{true};
+    // 硬件支持的最大向量大小，若硬件不支持向量化则为0
+    constexpr inline auto native_simd_max_size{::cppfastbox::cpu_flags::wasm::detail::get_native_simd_max_size()};
+    // 单指令可以读写的最大向量大小，若硬件不支持向量化则为0
+    constexpr inline auto native_simd_ls_max_size{::cppfastbox::cpu_flags::wasm::native_simd_max_size};
+}  // namespace cppfastbox::cpu_flags::wasm
+
+// 通用cpu flag
+namespace cppfastbox::cpu_flags
+{
+    namespace detail
+    {
+        consteval inline ::std::size_t get_native_simd_max_size() noexcept
+        {
+            switch(::cppfastbox::cpu_family::native)
+            {
+                case ::cppfastbox::cpu_family::x86: return ::cppfastbox::cpu_flags::x86::native_simd_max_size;
+                case ::cppfastbox::cpu_family::arm: return ::cppfastbox::cpu_flags::arm::native_simd_max_size;
+                case ::cppfastbox::cpu_family::la: return ::cppfastbox::cpu_flags::la::native_simd_max_size;
+                case ::cppfastbox::cpu_family::wasm: return ::cppfastbox::cpu_flags::wasm::native_simd_max_size;
+                default: ::std::unreachable();
+            }
+        }
+
+        consteval inline ::std::size_t get_native_simd_ls_max_size() noexcept
+        {
+            switch(::cppfastbox::cpu_family::native)
+            {
+                case ::cppfastbox::cpu_family::x86: return ::cppfastbox::cpu_flags::x86::native_simd_ls_max_size;
+                case ::cppfastbox::cpu_family::arm: return ::cppfastbox::cpu_flags::arm::native_simd_ls_max_size;
+                case ::cppfastbox::cpu_family::la: return ::cppfastbox::cpu_flags::la::native_simd_ls_max_size;
+                case ::cppfastbox::cpu_family::wasm: return ::cppfastbox::cpu_flags::wasm::native_simd_ls_max_size;
+                default: ::std::unreachable();
+            }
+        }
+
+        consteval inline ::std::size_t get_unaligned_ls_support() noexcept
+        {
+            switch(::cppfastbox::cpu_family::native)
+            {
+                case ::cppfastbox::cpu_family::x86: return ::cppfastbox::cpu_flags::x86::unaligned_ls_support;
+                case ::cppfastbox::cpu_family::arm: return ::cppfastbox::cpu_flags::arm::unaligned_ls_support;
+                case ::cppfastbox::cpu_family::la: return ::cppfastbox::cpu_flags::la::unaligned_ls_support;
+                case ::cppfastbox::cpu_family::wasm: return ::cppfastbox::cpu_flags::wasm::unaligned_ls_support;
+                default: ::std::unreachable();
+            }
+        }
+
+        consteval inline ::std::size_t get_unaligned_simd_ls_support() noexcept
+        {
+            switch(::cppfastbox::cpu_family::native)
+            {
+                case ::cppfastbox::cpu_family::x86: return ::cppfastbox::cpu_flags::x86::unaligned_simd_ls_support;
+                case ::cppfastbox::cpu_family::arm: return ::cppfastbox::cpu_flags::arm::unaligned_simd_ls_support;
+                case ::cppfastbox::cpu_family::la: return ::cppfastbox::cpu_flags::la::unaligned_simd_ls_support;
+                case ::cppfastbox::cpu_family::wasm: return ::cppfastbox::cpu_flags::wasm::unaligned_simd_ls_support;
+                default: ::std::unreachable();
+            }
+        }
+    }  // namespace detail
+
+    // 硬件支持的最大向量大小，若硬件不支持向量化则为0
+    constexpr inline auto native_simd_max_size{::cppfastbox::cpu_flags::detail::get_native_simd_max_size()};
+    // 单指令可以读写的最大向量大小，若硬件不支持向量化则为0
+    constexpr inline auto native_simd_ls_max_size{::cppfastbox::cpu_flags::detail::get_native_simd_ls_max_size()};
     // 是否支持向量化
-    constexpr inline auto simd_support{::cppfastbox::native_vector_max_size != 0};
+    constexpr inline auto simd_support{::cppfastbox::cpu_flags::native_simd_max_size != 0};
     // 32位程序不应使用64位cpu专有的向量指令集
-    static_assert(::cppfastbox::is_64bit || (::cppfastbox::is_32bit && ::cppfastbox::native_vector_max_size <= 16),
-                  "32-bit programs should not use the vector instruction set specific to 64-bit cpus.");
+    static_assert(::cppfastbox::is_64bit || (::cppfastbox::is_32bit && ::cppfastbox::cpu_flags::native_simd_max_size <= 16),
+                  "32-bit programs should not use the simd instruction set specific to 64-bit cpus.");
     // 硬件支持的最大通道大小
-    constexpr inline auto native_lane_max_size{::cppfastbox::max(::cppfastbox::native_vector_max_size, sizeof(::std::size_t))};
+    constexpr inline auto native_lane_max_size{::cppfastbox::max(::cppfastbox::cpu_flags::native_simd_max_size, sizeof(::std::size_t))};
     // 硬件支持的最大读写通道大小
-    constexpr inline auto native_ls_lane_max_size{::cppfastbox::max(::cppfastbox::native_vector_ls_max_size, sizeof(::std::size_t))};
+    constexpr inline auto native_ls_lane_max_size{::cppfastbox::max(::cppfastbox::cpu_flags::native_simd_ls_max_size, sizeof(::std::size_t))};
     // cppfastbox支持的最大通道大小
     constexpr inline auto lane_max_size_support{64zu};
     // cppfastbox支持的最大读写通道大小
     constexpr inline auto ls_lane_max_size_support{64zu};
-}  // namespace cppfastbox
+    // 是否支持标量的非对齐读写
+    constexpr inline bool unaligned_ls_support{::cppfastbox::cpu_flags::detail::get_unaligned_ls_support()};
+    // 是否支持向量的非对齐读写
+    constexpr inline bool unaligned_simd_ls_support{::cppfastbox::cpu_flags::detail::get_unaligned_simd_ls_support()};
+}  // namespace cppfastbox::cpu_flags

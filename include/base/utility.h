@@ -400,11 +400,11 @@ namespace cppfastbox
      * @param size 要分解的读写操作的字节数
      * @note 分解时会尝试向量化
      */
-    template <::std::size_t lane_max_size = ::cppfastbox::native_ls_lane_max_size>
+    template <::std::size_t lane_max_size = ::cppfastbox::cpu_flags::native_ls_lane_max_size>
     constexpr inline auto split_into_native_ls_lanes(::std::size_t size) noexcept
     {
         static_assert(lane_max_size >= 4, "The cpu must support 4 bytes load and store.");
-        static_assert(lane_max_size <= ::cppfastbox::ls_lane_max_size_support,
+        static_assert(lane_max_size <= ::cppfastbox::cpu_flags::ls_lane_max_size_support,
                       "Cppfastbox does not support lanes wider than cppfastbox::ls_lane_max_size_support.");
         ::cppfastbox::native_ls_lanes lanes{};
 
@@ -443,7 +443,7 @@ namespace cppfastbox
             }
             else
             {
-                if constexpr(::cppfastbox::cpu_flags::sve_support)
+                if constexpr(::cppfastbox::cpu_flags::arm::sve_support)
                 {
                     using v [[gnu::vector_size(64)]] = ::std::size_t;
                     v vsize{size, size, size, size, size, size, size, size};
@@ -452,7 +452,7 @@ namespace cppfastbox
                     __builtin_memcpy(&lanes, &vsize, 64);
                 }
                 // 由编译器决定是否向量化
-                else if constexpr(::cppfastbox::cpu_flags::neon_support)
+                else if constexpr(::cppfastbox::cpu_flags::arm::neon_support)
                 {
                     lanes.l32 = size >> 5;
                     lanes.l16 = (size >> 4) & 1;
