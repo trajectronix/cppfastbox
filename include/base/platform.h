@@ -513,6 +513,144 @@ namespace cppfastbox::cpu_flags
     };
 }  // namespace cppfastbox::cpu_flags
 
+namespace cppfastbox::cpu_flags::arm
+{
+    // 是否支持arm neon指令集
+    constexpr inline bool neon_support{
+#ifdef __ARM_NEON
+        true
+#endif
+    };
+
+    // 是否支持arm sve指令集
+    constexpr inline bool sve_support{
+#ifdef __ARM_FEATURE_SVE
+        true
+#endif
+    };
+
+    // 是否支持arm sve2指令集
+    constexpr inline bool sve2_support{
+#ifdef __ARM_FEATURE_SVE2
+        true
+#endif
+    };
+
+    // arm架构
+    enum class arch : ::std::size_t
+    {
+        inapplicability,  //< 非arm架构，不适用
+        armv1,
+        armv2,
+        armv3,
+        armv4,
+        armv5,
+        armv6,
+        armv7,
+        armv8,
+        armv9,
+        arch_num,  //< 支持的arm架构数+1
+#ifdef __ARM_ARCH
+        native = __ARM_ARCH
+#else
+        native = inapplicability
+#endif
+    };
+    // arm架构数
+    constexpr inline auto arch_num{::std::to_underlying(::cppfastbox::cpu_flags::arm::arch::arch_num) - 1};
+    // arm架构名称
+    constexpr const inline char* arch_name[]{
+        "armv1",
+        "armv2",
+        "armv3",
+        "armv4",
+        "armv5",
+        "armv6",
+        "armv7",
+        "armv8",
+        "armv9",
+        "ARMv1",
+        "ARMv2",
+        "ARMv3",
+        "ARMv4",
+        "ARMv5",
+        "ARMv6",
+        "ARMv7",
+        "ARMv8",
+        "ARMv9",
+    };
+    //  保证表arch_name的元素数正确
+    static_assert(sizeof(::cppfastbox::cpu_flags::arm::arch_name) / sizeof(char*) % ::cppfastbox::cpu_flags::arm::arch_num == 0);
+    // 表arch_name的页数
+    constexpr inline auto arch_leaf_num{sizeof(::cppfastbox::cpu_flags::arm::arch_name) / sizeof(char*) /
+                                        ::cppfastbox::cpu_flags::arm::arch_num};
+    /**
+     * @brief 获取arm架构名称
+     *
+     * @tparam leaf 页数
+     * @tparam flag arm架构枚举
+     */
+    template <::std::size_t leaf, ::cppfastbox::cpu_flags::arm::arch arch = ::cppfastbox::cpu_flags::arm::arch::native>
+        requires (arch != ::cppfastbox::cpu_flags::arm::arch::inapplicability)
+    constexpr inline auto get_arch_name{
+        ::cppfastbox::cpu_flags::arm::arch_name[leaf * ::cppfastbox::cpu_flags::arm::arch_num + ::std::to_underlying(arch)]};
+
+    // arm配置
+    enum class profile : ::std::size_t
+    {
+        inapplicability,  //< 非arm架构，不适用
+        none,             //< 无特殊配置
+        a,                //< a系列
+        r,                //< r系列
+        m,                //< m系列
+        profile_num,      //< 支持的arm配置数+1
+#ifdef __ARM_ARCH_PROFILE
+    #if __ARM_ARCH_PROFILE == 'A'
+        native = a
+    #elif __ARM_ARCH_PROFILE == 'R'
+        native = r
+    #else
+        native = m
+    #endif
+#else
+    #if defined(CPPFASTBOX_ARM) || defined(CPPFASTBOX_ARM64)
+        native = none
+    #else
+        native = inapplicability
+    #endif
+#endif
+    };
+    // arm配置数
+    constexpr inline auto profile_num{::std::to_underlying(::cppfastbox::cpu_flags::arm::profile::profile_num) - 1};
+    // arm配置名称
+    constexpr const inline char* profile_name[]{"none", "a", "r", "m", "none", "A", "R", "M"};
+    //  保证表profile_name的元素数正确
+    static_assert(sizeof(::cppfastbox::cpu_flags::arm::profile_name) / sizeof(char*) % ::cppfastbox::cpu_flags::arm::profile_num == 0);
+    // 表profile_name的页数
+    constexpr inline auto profile_leaf_num{sizeof(::cppfastbox::cpu_flags::arm::profile_name) / sizeof(char*) /
+                                           ::cppfastbox::cpu_flags::arm::profile_num};
+    /**
+     * @brief 获取arm配置名称
+     *
+     * @tparam leaf 页数
+     * @tparam flag arm配置枚举
+     */
+    template <::std::size_t leaf, ::cppfastbox::cpu_flags::arm::profile profile = ::cppfastbox::cpu_flags::arm::profile::native>
+        requires (profile != ::cppfastbox::cpu_flags::arm::profile::inapplicability)
+    constexpr inline auto get_profile_name{
+        ::cppfastbox::cpu_flags::arm::profile_name[leaf * ::cppfastbox::cpu_flags::arm::profile_num + ::std::to_underlying(profile)]};
+
+    // 是否支持标量的非对齐读写
+    constexpr inline bool unaligned_ls_support{::std::to_underlying(::cppfastbox::cpu_flags::arm::arch::native) >=
+                                               ::std::to_underlying(::cppfastbox::cpu_flags::arm::arch::armv6)};
+    // 是否支持向量的非对齐读写
+    constexpr inline bool unaligned_simd_ls_support{
+#ifdef __ARM_NEON
+        true
+#endif
+    };
+};  // namespace cppfastbox::cpu_flags::arm
+
 namespace cppfastbox
 {
     namespace detail
@@ -522,8 +660,8 @@ namespace cppfastbox
             if constexpr(::cppfastbox::cpu_flags::avx512f_support) { return 64; }
             else if constexpr(::cppfastbox::cpu_flags::avx_support) { return 32; }
             else if constexpr(::cppfastbox::cpu_flags::sse_support) { return 16; }
-            else if constexpr(::cppfastbox::cpu_flags::sve_support) { return 256; }
-            else if constexpr(::cppfastbox::cpu_flags::neon_support) { return 16; }
+            else if constexpr(::cppfastbox::cpu_flags::arm::sve_support) { return 256; }
+            else if constexpr(::cppfastbox::cpu_flags::arm::neon_support) { return 16; }
             else if constexpr(::cppfastbox::cpu_flags::lasx_support) { return 32; }
             else if constexpr(::cppfastbox::cpu_flags::lsx_support) { return 16; }
             else if constexpr(::cppfastbox::cpu_flags::wasm128_support) { return 16; }
