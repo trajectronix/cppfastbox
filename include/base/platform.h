@@ -127,21 +127,33 @@ namespace cppfastbox
     static_assert(sizeof(::cppfastbox::os_name) / sizeof(char*) % ::cppfastbox::os_num == 0);
     // 表os_name的页数
     constexpr inline auto os_leaf_num{sizeof(::cppfastbox::os_name) / sizeof(char*) / ::cppfastbox::os_num};
+
     /**
-     * @brief 判断当前系统是否是给定操作系统
+     * @brief 判断当前操作系统是否是给定操作系统
      *
      * @tparam os 操作系统枚举
      */
     template <::cppfastbox::os os>
-    constexpr inline auto is_os{::cppfastbox::os::native == os};
+    consteval inline auto is_os()
+    {
+        static_assert(::std::to_underlying(os) < ::cppfastbox::os_num, "The parma \"os\" is out of range");
+        return os == ::cppfastbox::os::native;
+    };
+
     /**
-     * @brief 获取当前系统名称
+     * @brief 获取操作系统名称
      *
      * @tparam leaf 页数
      * @tparam os 操作系统枚举
      */
     template <::std::size_t leaf, ::cppfastbox::os os = ::cppfastbox::os::native>
-    constexpr inline auto get_os_name{::cppfastbox::os_name[leaf * ::cppfastbox::os_num + ::std::to_underlying(os)]};
+    consteval inline auto get_os_name() noexcept
+    {
+        constexpr auto id{::std::to_underlying(os)};
+        static_assert(leaf < ::cppfastbox::os_leaf_num, "The parma \"leaf\" is out of range");
+        static_assert(id < ::cppfastbox::os_num, "The parma \"os\" is out of range");
+        return ::cppfastbox::os_name[leaf * ::cppfastbox::os_num + id];
+    }
 
     // 受支持的cpu架构
     enum class cpu_arch : ::std::size_t
@@ -186,20 +198,31 @@ namespace cppfastbox
     // 表cpu_arch_name的页数
     constexpr inline auto cpu_arch_leaf_num{sizeof(::cppfastbox::cpu_arch_name) / sizeof(char*) / ::cppfastbox::cpu_arch_num};
     /**
-     * @brief 判断当前cpu是否是给定cpu
+     * @brief 判断当前cpu架构是否是给定cpu架构
      *
-     * @tparam arch cpu架构枚举
+     * @tparam cpu_arch cpu架构枚举
      */
-    template <::cppfastbox::cpu_arch arch>
-    constexpr inline auto is_cpu_arch{::cppfastbox::cpu_arch::native == arch};
+    template <::cppfastbox::cpu_arch cpu_arch>
+    consteval inline auto is_cpu_arch()
+    {
+        static_assert(::std::to_underlying(cpu_arch) < ::cppfastbox::cpu_arch_num, "The parma \"cpu_arch\" is out of range");
+        return cpu_arch == ::cppfastbox::cpu_arch::native;
+    };
+
     /**
-     * @brief 获取cpu名称
+     * @brief 获取cpu架构名称
      *
      * @tparam leaf 页数
-     * @tparam arch cpu架构枚举
+     * @tparam cpu_arch cpu架构枚举
      */
-    template <::std::size_t leaf, ::cppfastbox::cpu_arch arch = ::cppfastbox::cpu_arch::native>
-    constexpr inline auto get_cpu_arch_name{::cppfastbox::cpu_arch_name[leaf * ::cppfastbox::cpu_arch_num + ::std::to_underlying(arch)]};
+    template <::std::size_t leaf, ::cppfastbox::cpu_arch cpu_arch = ::cppfastbox::cpu_arch::native>
+    consteval inline auto get_cpu_arch_name() noexcept
+    {
+        constexpr auto id{::std::to_underlying(cpu_arch)};
+        static_assert(leaf < ::cppfastbox::cpu_arch_leaf_num, "The parma \"leaf\" is out of range");
+        static_assert(id < ::cppfastbox::cpu_arch_num, "The parma \"cpu_arch\" is out of range");
+        return ::cppfastbox::cpu_arch_name[leaf * ::cppfastbox::cpu_arch_num + id];
+    }
 
     // 受支持的编译器
     enum class compiler : ::std::size_t
@@ -227,7 +250,12 @@ namespace cppfastbox
      * @tparam compiler 编译器枚举
      */
     template <::cppfastbox::compiler compiler>
-    constexpr inline auto is_compiler{::cppfastbox::compiler::native == compiler};
+    consteval inline auto is_compiler()
+    {
+        static_assert(::std::to_underlying(compiler) < ::cppfastbox::compiler_num, "The parma \"compiler\" is out of range");
+        return compiler == ::cppfastbox::compiler::native;
+    };
+
     /**
      * @brief 获取编译器名称
      *
@@ -235,7 +263,13 @@ namespace cppfastbox
      * @tparam compiler 编译器枚举
      */
     template <::std::size_t leaf, ::cppfastbox::compiler compiler = ::cppfastbox::compiler::native>
-    constexpr inline auto get_compiler_name{::cppfastbox::compiler_name[leaf * ::cppfastbox::compiler_num + ::std::to_underlying(compiler)]};
+    consteval inline auto get_compiler_name() noexcept
+    {
+        constexpr auto id{::std::to_underlying(compiler)};
+        static_assert(leaf < ::cppfastbox::compiler_leaf_num, "The parma \"leaf\" is out of range");
+        static_assert(id < ::cppfastbox::compiler_num, "The parma \"compiler\" is out of range");
+        return ::cppfastbox::compiler_name[leaf * ::cppfastbox::compiler_num + id];
+    }
 
     // 受支持的cpu指令集
     enum class cpu_flag : ::std::size_t
@@ -271,14 +305,21 @@ namespace cppfastbox
         "AVX512DQ", "AVX512VBMI", "Wasm Simd128", "Neon",    "SVE",    "SVE2",   "LSX",  "LASX"};
     // 表cpu_flag_name的页数
     constexpr inline auto cpu_flag_leaf_num{sizeof(::cppfastbox::cpu_flag_name) / sizeof(char*) / ::cppfastbox::cpu_flag_num};
+
     /**
      * @brief 获取cpu指令集名称
      *
      * @tparam leaf 页数
-     * @tparam flag cpu指令集枚举
+     * @tparam cpu_flag cpu指令集枚举
      */
-    template <::std::size_t leaf, ::cppfastbox::cpu_flag flag>
-    constexpr inline auto get_cpu_flag_name{::cppfastbox::cpu_flag_name[leaf * ::cppfastbox::cpu_flag_num + ::std::to_underlying(flag)]};
+    template <::std::size_t leaf, ::cppfastbox::cpu_flag cpu_flag>
+    consteval inline auto get_cpu_flag_name() noexcept
+    {
+        constexpr auto id{::std::to_underlying(cpu_flag)};
+        static_assert(leaf < ::cppfastbox::cpu_flag_leaf_num, "The parma \"leaf\" is out of range");
+        static_assert(id < ::cppfastbox::cpu_flag_num, "The parma \"cpu_flag\" is out of range");
+        return ::cppfastbox::cpu_flag_name[leaf * ::cppfastbox::cpu_flag_num + id];
+    }
 }  // namespace cppfastbox
 
 namespace cppfastbox
@@ -585,15 +626,31 @@ namespace cppfastbox::cpu_flags::arm
     constexpr inline auto arch_leaf_num{sizeof(::cppfastbox::cpu_flags::arm::arch_name) / sizeof(char*) /
                                         ::cppfastbox::cpu_flags::arm::arch_num};
     /**
+     * @brief 判断当前arm架构是否是给定arm架构
+     *
+     * @tparam arch arm架构枚举
+     */
+    template <::cppfastbox::cpu_flags::arm::arch arch>
+    consteval inline auto is_arch()
+    {
+        static_assert(::std::to_underlying(arch) < ::cppfastbox::cpu_flags::arm::arch_num, "The parma \"arch\" is out of range");
+        return arch == ::cppfastbox::cpu_flags::arm::arch::native;
+    };
+
+    /**
      * @brief 获取arm架构名称
      *
      * @tparam leaf 页数
-     * @tparam flag arm架构枚举
+     * @tparam arch arm架构枚举
      */
     template <::std::size_t leaf, ::cppfastbox::cpu_flags::arm::arch arch = ::cppfastbox::cpu_flags::arm::arch::native>
-        requires (arch != ::cppfastbox::cpu_flags::arm::arch::inapplicability)
-    constexpr inline auto get_arch_name{
-        ::cppfastbox::cpu_flags::arm::arch_name[leaf * ::cppfastbox::cpu_flags::arm::arch_num + ::std::to_underlying(arch)]};
+    consteval inline auto get_arch_name() noexcept
+    {
+        constexpr auto id{::std::to_underlying(arch)};
+        static_assert(leaf < ::cppfastbox::cpu_flags::arm::arch_leaf_num, "The parma \"leaf\" is out of range");
+        static_assert(id < ::cppfastbox::cpu_flags::arm::arch_num, "The parma \"arch\" is out of range");
+        return ::cppfastbox::cpu_flags::arm::arch_name[leaf * ::cppfastbox::cpu_flags::arm::arch_num + id];
+    }
 
     // arm配置
     enum class profile : ::std::size_t
@@ -630,15 +687,31 @@ namespace cppfastbox::cpu_flags::arm
     constexpr inline auto profile_leaf_num{sizeof(::cppfastbox::cpu_flags::arm::profile_name) / sizeof(char*) /
                                            ::cppfastbox::cpu_flags::arm::profile_num};
     /**
+     * @brief 判断当前arm配置是否是给定arm配置
+     *
+     * @tparam profile arm配置枚举
+     */
+    template <::cppfastbox::cpu_flags::arm::profile profile>
+    consteval inline auto is_profile()
+    {
+        static_assert(::std::to_underlying(profile) < ::cppfastbox::cpu_flags::arm::profile_num, "The parma \"profile\" is out of range");
+        return profile == ::cppfastbox::cpu_flags::arm::profile::native;
+    };
+
+    /**
      * @brief 获取arm配置名称
      *
      * @tparam leaf 页数
-     * @tparam flag arm配置枚举
+     * @tparam profile arm配置枚举
      */
     template <::std::size_t leaf, ::cppfastbox::cpu_flags::arm::profile profile = ::cppfastbox::cpu_flags::arm::profile::native>
-        requires (profile != ::cppfastbox::cpu_flags::arm::profile::inapplicability)
-    constexpr inline auto get_profile_name{
-        ::cppfastbox::cpu_flags::arm::profile_name[leaf * ::cppfastbox::cpu_flags::arm::profile_num + ::std::to_underlying(profile)]};
+    consteval inline auto get_profile_name() noexcept
+    {
+        constexpr auto id{::std::to_underlying(profile)};
+        static_assert(leaf < ::cppfastbox::cpu_flags::arm::profile_leaf_num, "The parma \"leaf\" is out of range");
+        static_assert(id < ::cppfastbox::cpu_flags::arm::profile_num, "The parma \"profile\" is out of range");
+        return ::cppfastbox::cpu_flags::arm::profile_name[leaf * ::cppfastbox::cpu_flags::arm::profile_num + id];
+    }
 
     // 是否支持标量的非对齐读写
     constexpr inline bool unaligned_ls_support{::std::to_underlying(::cppfastbox::cpu_flags::arm::arch::native) >=
@@ -655,7 +728,7 @@ namespace cppfastbox
 {
     namespace detail
     {
-        consteval inline ::std::size_t native_vector_max_size() noexcept
+        consteval inline ::std::size_t get_native_vector_max_size() noexcept
         {
             if constexpr(::cppfastbox::cpu_flags::avx512f_support) { return 64; }
             else if constexpr(::cppfastbox::cpu_flags::avx_support) { return 32; }
@@ -668,7 +741,7 @@ namespace cppfastbox
             else { return 0; }
         }
 
-        consteval inline ::std::size_t native_vector_ls_max_size() noexcept
+        consteval inline ::std::size_t get_native_vector_ls_max_size() noexcept
         {
             if constexpr(::cppfastbox::cpu_flags::avx512f_support) { return 64; }
             else if constexpr(::cppfastbox::cpu_flags::avx_support) { return 32; }
@@ -683,9 +756,9 @@ namespace cppfastbox
     }  // namespace detail
 
     // 硬件支持的最大向量大小，若硬件不支持向量化则为0
-    constexpr inline auto native_vector_max_size{::cppfastbox::detail::native_vector_max_size()};
+    constexpr inline auto native_vector_max_size{::cppfastbox::detail::get_native_vector_max_size()};
     // 单指令可以读写的最大向量大小，若硬件不支持向量化则为0
-    constexpr inline auto native_vector_ls_max_size{::cppfastbox::detail::native_vector_ls_max_size()};
+    constexpr inline auto native_vector_ls_max_size{::cppfastbox::detail::get_native_vector_ls_max_size()};
     // 是否支持向量化
     constexpr inline auto simd_support{::cppfastbox::native_vector_max_size != 0};
     // 32位程序不应使用64位cpu专有的向量指令集

@@ -13,13 +13,13 @@
 namespace cppfastbox
 {
     // 向量builtin和intrinsic中使用的int8_t
-    using simd_int8_t = ::std::conditional_t<::cppfastbox::is_cpu_arch<::cppfastbox::cpu_arch::x86>, char, int8_t>;
+    using simd_int8_t = ::std::conditional_t<::cppfastbox::is_cpu_arch<::cppfastbox::cpu_arch::x86>(), char, int8_t>;
     // 向量builtin和intrinsic中使用的int16_t
-    using simd_int16_t = ::std::conditional_t<::cppfastbox::is_cpu_arch<::cppfastbox::cpu_arch::x86>, short, int16_t>;
+    using simd_int16_t = ::std::conditional_t<::cppfastbox::is_cpu_arch<::cppfastbox::cpu_arch::x86>(), short, int16_t>;
     // 向量builtin和intrinsic中使用的int32_t
-    using simd_int32_t = ::std::conditional_t<::cppfastbox::is_cpu_arch<::cppfastbox::cpu_arch::x86>, int, int32_t>;
+    using simd_int32_t = ::std::conditional_t<::cppfastbox::is_cpu_arch<::cppfastbox::cpu_arch::x86>(), int, int32_t>;
     // 向量builtin和intrinsic中使用的int64_t
-    using simd_int64_t = ::std::conditional_t<::cppfastbox::is_cpu_arch<::cppfastbox::cpu_arch::x86>, char, int64_t>;
+    using simd_int64_t = ::std::conditional_t<::cppfastbox::is_cpu_arch<::cppfastbox::cpu_arch::x86>(), char, int64_t>;
     // 向量builtin和intrinsic中使用的uint8_t
     using simd_uint8_t = ::std::make_unsigned_t<::cppfastbox::simd_int8_t>;
     // 向量builtin和intrinsic中使用的uint16_t
