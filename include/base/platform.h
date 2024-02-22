@@ -79,8 +79,8 @@
 
 namespace cppfastbox
 {
-    // 当前平台的操作系统
-    enum class operating_system : ::std::size_t
+    // 受支持的操作系统
+    enum class os : ::std::size_t
     {
         freestanding,
         windows,
@@ -106,39 +106,44 @@ namespace cppfastbox
         native = wasm
 #endif
     };
+    //  支持的操作系统数量
+    constexpr inline auto os_num{::std::to_underlying(::cppfastbox::os::os_num)};
     // 操作系统名称
-    constexpr const inline char* operating_system_name[]{"freestanding",
-                                                         "windows",
-                                                         "linux",
-                                                         "ios",
-                                                         "macos",
-                                                         "android",
-                                                         "wasm",
-                                                         "Freestanding",
-                                                         "Windows",
-                                                         "Linux",
-                                                         "iOS",
-                                                         "MacOS",
-                                                         "Android",
-                                                         "WebAssembly"};
+    constexpr const inline char* os_name[]{"freestanding",
+                                           "windows",
+                                           "linux",
+                                           "ios",
+                                           "macos",
+                                           "android",
+                                           "wasm",
+                                           "Freestanding",
+                                           "Windows",
+                                           "Linux",
+                                           "iOS",
+                                           "MacOS",
+                                           "Android",
+                                           "WebAssembly"};
+    //  保证表os_name的元素数正确
+    static_assert(sizeof(::cppfastbox::os_name) / sizeof(char*) % ::cppfastbox::os_num == 0);
+    // 表os_name的页数
+    constexpr inline auto os_leaf_num{sizeof(::cppfastbox::os_name) / sizeof(char*) / ::cppfastbox::os_num};
     /**
-     * @brief 判断当前系统是否是给定系统
+     * @brief 判断当前系统是否是给定操作系统
      *
-     * @tparam os 系统枚举
+     * @tparam os 操作系统枚举
      */
-    template <::cppfastbox::operating_system os>
-    constexpr inline auto is_os{::cppfastbox::operating_system::native == os};
+    template <::cppfastbox::os os>
+    constexpr inline auto is_os{::cppfastbox::os::native == os};
     /**
      * @brief 获取当前系统名称
      *
      * @tparam leaf 页数
+     * @tparam os 操作系统枚举
      */
-    template <::std::size_t leaf>
-    constexpr inline auto get_native_os_name{
-        ::cppfastbox::operating_system_name[leaf * ::std::to_underlying(::cppfastbox::operating_system::os_num) +
-                                            ::std::to_underlying(::cppfastbox::operating_system::native)]};
+    template <::std::size_t leaf, ::cppfastbox::os os = ::cppfastbox::os::native>
+    constexpr inline auto get_os_name{::cppfastbox::os_name[leaf * ::cppfastbox::os_num + ::std::to_underlying(os)]};
 
-    // 当前cpu架构
+    // 受支持的cpu架构
     enum class cpu_arch : ::std::size_t
     {
         x86,
@@ -168,28 +173,35 @@ namespace cppfastbox
         native = wasm64
 #endif
     };
+    //  支持的cpu架构数
+    constexpr inline auto cpu_arch_num{::std::to_underlying(::cppfastbox::cpu_arch::arch_num)};
     // cpu架构名称
     constexpr const inline char* cpu_arch_name[]{"x86",       "x64",         "arm",         "arm64",         "la",     "la64",
                                                  "wasm",      "wasm64",      "X86",         "X86_64",        "ARM",    "AArch64",
                                                  "LoongArch", "LoongArch64", "WebAssembly", "WebAssembly64", "i386",   "x86-64",
                                                  "aarch32",   "aarch64",     "loongarch",   "loongarch64",   "wasm32", "wasm64"};
+
+    //  保证表cpu_arch_name的元素数正确
+    static_assert(sizeof(::cppfastbox::cpu_arch_name) / sizeof(char*) % ::cppfastbox::cpu_arch_num == 0);
+    // 表cpu_arch_name的页数
+    constexpr inline auto cpu_arch_leaf_num{sizeof(::cppfastbox::cpu_arch_name) / sizeof(char*) / ::cppfastbox::cpu_arch_num};
     /**
      * @brief 判断当前cpu是否是给定cpu
      *
-     * @tparam arch cpu枚举
+     * @tparam arch cpu架构枚举
      */
     template <::cppfastbox::cpu_arch arch>
-    constexpr inline auto is_arch{::cppfastbox::cpu_arch::native == arch};
+    constexpr inline auto is_cpu_arch{::cppfastbox::cpu_arch::native == arch};
     /**
-     * @brief 获取当前cpu名称
+     * @brief 获取cpu名称
      *
      * @tparam leaf 页数
+     * @tparam arch cpu架构枚举
      */
-    template <::std::size_t leaf>
-    constexpr inline auto get_native_arch_name{
-        cpu_arch_name[leaf * ::std::to_underlying(::cppfastbox::cpu_arch::arch_num) + ::std::to_underlying(::cppfastbox::cpu_arch::native)]};
+    template <::std::size_t leaf, ::cppfastbox::cpu_arch arch = ::cppfastbox::cpu_arch::native>
+    constexpr inline auto get_cpu_arch_name{::cppfastbox::cpu_arch_name[leaf * ::cppfastbox::cpu_arch_num + ::std::to_underlying(arch)]};
 
-    // 当前编译器
+    // 受支持的编译器
     enum class compiler : ::std::size_t
     {
         clang,
@@ -201,8 +213,14 @@ namespace cppfastbox
         native = gcc
 #endif
     };
+    //  支持的编译器数
+    constexpr inline auto compiler_num{::std::to_underlying(::cppfastbox::compiler::compiler_num)};
     // 编译器名称
     constexpr const inline char* compiler_name[]{"clang", "gcc", "Clang", "GCC", "clang++", "g++", "llvm", "gcc"};
+    //  保证表compiler_name的元素数正确
+    static_assert(sizeof(::cppfastbox::compiler_name) / sizeof(char*) % ::cppfastbox::compiler_num == 0);
+    // 表compiler_name的页数
+    constexpr inline auto compiler_leaf_num{sizeof(::cppfastbox::compiler_name) / sizeof(char*) / ::cppfastbox::compiler_num};
     /**
      * @brief 判断当前编译器是否是给定编译器
      *
@@ -211,13 +229,56 @@ namespace cppfastbox
     template <::cppfastbox::compiler compiler>
     constexpr inline auto is_compiler{::cppfastbox::compiler::native == compiler};
     /**
-     * @brief 获取当前编译器名称
+     * @brief 获取编译器名称
      *
      * @tparam leaf 页数
+     * @tparam compiler 编译器枚举
      */
-    template <::std::size_t leaf>
-    constexpr inline auto get_native_compiler_name{
-        compiler_name[leaf * ::std::to_underlying(::cppfastbox::compiler::compiler_num) + ::std::to_underlying(::cppfastbox::compiler::native)]};
+    template <::std::size_t leaf, ::cppfastbox::compiler compiler = ::cppfastbox::compiler::native>
+    constexpr inline auto get_compiler_name{::cppfastbox::compiler_name[leaf * ::cppfastbox::compiler_num + ::std::to_underlying(compiler)]};
+
+    // 受支持的cpu指令集
+    enum class cpu_flag : ::std::size_t
+    {
+        sse,
+        sse2,
+        sse3,
+        ssse3,
+        sse4_1,
+        sse4_2,
+        avx,
+        avx2,
+        avx512f,
+        avx512bw,
+        avx512vl,
+        avx512dq,
+        avx512vbmi,
+        wasm128,
+        neon,
+        sve,
+        sve2,
+        lsx,
+        lasx,
+        cpu_flag_num  //< 支持的cpu指令集数量
+    };
+    //  支持的cpu指令集数量
+    constexpr inline auto cpu_flag_num{::std::to_underlying(::cppfastbox::cpu_flag::cpu_flag_num)};
+    // cpu指令集名称
+    constexpr const inline char* cpu_flag_name[]{
+        "sse",      "sse2",       "sse3",         "ssse3",   "sse4_1", "sse4_2", "avx",  "avx2",    "avx512f",  "avx512bw",
+        "avx512vl", "avx512dq",   "avx512vbmi",   "wasm128", "neon",   "sve",    "sve2", "lsx",     "lasx",     "SSE",
+        "SSE2",     "SSE3",       "SSSE3",        "SSE4.1",  "SSE4.2", "AVX",    "AVX2", "AVX512F", "AVX512BW", "AVX512VL",
+        "AVX512DQ", "AVX512VBMI", "Wasm Simd128", "Neon",    "SVE",    "SVE2",   "LSX",  "LASX"};
+    // 表cpu_flag_name的页数
+    constexpr inline auto cpu_flag_leaf_num{sizeof(::cppfastbox::cpu_flag_name) / sizeof(char*) / ::cppfastbox::cpu_flag_num};
+    /**
+     * @brief 获取cpu指令集名称
+     *
+     * @tparam leaf 页数
+     * @tparam flag cpu指令集枚举
+     */
+    template <::std::size_t leaf, ::cppfastbox::cpu_flag flag>
+    constexpr inline auto get_cpu_flag_name{::cppfastbox::compiler_name[leaf * ::cppfastbox::cpu_flag_num + ::std::to_underlying(flag)]};
 }  // namespace cppfastbox
 
 namespace cppfastbox
@@ -410,7 +471,7 @@ namespace cppfastbox::cpu_flags
     };
 
     // 是否支持wasm simd128指令集
-    constexpr inline bool wasm_simd128_support{
+    constexpr inline bool wasm128_support{
 #if defined(__wasm_simd128__)
         true
 #endif
@@ -465,7 +526,7 @@ namespace cppfastbox
             else if constexpr(::cppfastbox::cpu_flags::neon_support) { return 16; }
             else if constexpr(::cppfastbox::cpu_flags::lasx_support) { return 32; }
             else if constexpr(::cppfastbox::cpu_flags::lsx_support) { return 16; }
-            else if constexpr(::cppfastbox::cpu_flags::wasm_simd128_support) { return 16; }
+            else if constexpr(::cppfastbox::cpu_flags::wasm128_support) { return 16; }
             else { return 0; }
         }
 
@@ -478,7 +539,7 @@ namespace cppfastbox
             else if constexpr(::cppfastbox::cpu_flags::neon_support) { return 32; }  //< ldp和stp可以同时处理两个128位向量
             else if constexpr(::cppfastbox::cpu_flags::lasx_support) { return 32; }
             else if constexpr(::cppfastbox::cpu_flags::lsx_support) { return 16; }
-            else if constexpr(::cppfastbox::cpu_flags::wasm_simd128_support) { return 16; }
+            else if constexpr(::cppfastbox::cpu_flags::wasm128_support) { return 16; }
             else { return 0; }
         }
     }  // namespace detail

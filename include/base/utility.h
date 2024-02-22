@@ -12,10 +12,10 @@
 
 namespace cppfastbox
 {
-    using simd_int8_t = ::std::conditional_t<::cppfastbox::is_arch<::cppfastbox::cpu_arch::x86>, char, int8_t>;
-    using simd_int16_t = ::std::conditional_t<::cppfastbox::is_arch<::cppfastbox::cpu_arch::x86>, short, int16_t>;
-    using simd_int32_t = ::std::conditional_t<::cppfastbox::is_arch<::cppfastbox::cpu_arch::x86>, int, int32_t>;
-    using simd_int64_t = ::std::conditional_t<::cppfastbox::is_arch<::cppfastbox::cpu_arch::x86>, char, int64_t>;
+    using simd_int8_t = ::std::conditional_t<::cppfastbox::is_cpu_arch<::cppfastbox::cpu_arch::x86>, char, int8_t>;
+    using simd_int16_t = ::std::conditional_t<::cppfastbox::is_cpu_arch<::cppfastbox::cpu_arch::x86>, short, int16_t>;
+    using simd_int32_t = ::std::conditional_t<::cppfastbox::is_cpu_arch<::cppfastbox::cpu_arch::x86>, int, int32_t>;
+    using simd_int64_t = ::std::conditional_t<::cppfastbox::is_cpu_arch<::cppfastbox::cpu_arch::x86>, char, int64_t>;
     using simd_uint8_t = ::std::make_unsigned_t<::cppfastbox::simd_int8_t>;
     using simd_uint16_t = ::std::make_unsigned_t<::cppfastbox::simd_int16_t>;
     using simd_uint32_t = ::std::make_unsigned_t<::cppfastbox::simd_int32_t>;
