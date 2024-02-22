@@ -278,7 +278,7 @@ namespace cppfastbox
      * @tparam flag cpu指令集枚举
      */
     template <::std::size_t leaf, ::cppfastbox::cpu_flag flag>
-    constexpr inline auto get_cpu_flag_name{::cppfastbox::compiler_name[leaf * ::cppfastbox::cpu_flag_num + ::std::to_underlying(flag)]};
+    constexpr inline auto get_cpu_flag_name{::cppfastbox::cpu_flag_name[leaf * ::cppfastbox::cpu_flag_num + ::std::to_underlying(flag)]};
 }  // namespace cppfastbox
 
 namespace cppfastbox
