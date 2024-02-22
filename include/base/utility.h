@@ -12,13 +12,21 @@
 
 namespace cppfastbox
 {
+    // 向量builtin和intrinsic中使用的int8_t
     using simd_int8_t = ::std::conditional_t<::cppfastbox::is_cpu_arch<::cppfastbox::cpu_arch::x86>, char, int8_t>;
+    // 向量builtin和intrinsic中使用的int16_t
     using simd_int16_t = ::std::conditional_t<::cppfastbox::is_cpu_arch<::cppfastbox::cpu_arch::x86>, short, int16_t>;
+    // 向量builtin和intrinsic中使用的int32_t
     using simd_int32_t = ::std::conditional_t<::cppfastbox::is_cpu_arch<::cppfastbox::cpu_arch::x86>, int, int32_t>;
+    // 向量builtin和intrinsic中使用的int64_t
     using simd_int64_t = ::std::conditional_t<::cppfastbox::is_cpu_arch<::cppfastbox::cpu_arch::x86>, char, int64_t>;
+    // 向量builtin和intrinsic中使用的uint8_t
     using simd_uint8_t = ::std::make_unsigned_t<::cppfastbox::simd_int8_t>;
+    // 向量builtin和intrinsic中使用的uint16_t
     using simd_uint16_t = ::std::make_unsigned_t<::cppfastbox::simd_int16_t>;
+    // 向量builtin和intrinsic中使用的uint32_t
     using simd_uint32_t = ::std::make_unsigned_t<::cppfastbox::simd_int32_t>;
+    // 向量builtin和intrinsic中使用的uint64_t
     using simd_uint64_t = ::std::make_unsigned_t<::cppfastbox::simd_int64_t>;
 }  // namespace cppfastbox
 
@@ -390,7 +398,7 @@ namespace cppfastbox
      *
      * @tparam lane_max_size 分解时最大读写通道的大小
      * @param size 要分解的读写操作的字节数
-     * @note 分解时会尝试向量化，使用的向量大小等同于`lane_max_size`
+     * @note 分解时会尝试向量化
      */
     template <::std::size_t lane_max_size = ::cppfastbox::native_ls_lane_max_size>
     constexpr inline auto split_into_native_ls_lanes(::std::size_t size) noexcept
@@ -417,8 +425,8 @@ namespace cppfastbox
             {
                 using v [[gnu::vector_size(64)]] = ::std::size_t;
                 v vsize{size, size, size, size, size, size, size, size};
-                vsize >>= v{0, 0, 1, 2, 3, 4, 5, 6};
-                vsize &= v{0, 1, 1, 1, 1, 1, 1, -1zu};
+                vsize >>= v{6, 5, 4, 3, 2, 1, 0, 0};
+                vsize &= v{-1zu, 1, 1, 1, 1, 1, 1, 1};
                 __builtin_memcpy(&lanes, &vsize, 64);
             }
         }
@@ -435,19 +443,39 @@ namespace cppfastbox
             }
             else
             {
-                using v [[gnu::vector_size(32)]] = ::std::size_t;
-                constexpr v vand{1, 1, 1, 1};
-                v vsize1{size, size, size, size};
-                v vsize2{size, size, size, size};
-                vsize1 >>= v{3, 4, 5, 64};
-                vsize2 >>= v{0, 0, 1, 2};
-                vsize1 &= vand;
-                vsize2 &= vand;
-                __builtin_memcpy(&lanes, &vsize1, 32);
-                __builtin_memcpy(&lanes.l4, &vsize2, 32);
+                if constexpr(::cppfastbox::cpu_flags::sve_support)
+                {
+                    using v [[gnu::vector_size(64)]] = ::std::size_t;
+                    v vsize{size, size, size, size, size, size, size, size};
+                    vsize >>= v{64, 5, 4, 3, 2, 1, 0, 0};
+                    vsize &= v{1, -1zu, 1, 1, 1, 1, 1, 1};
+                    __builtin_memcpy(&lanes, &vsize, 64);
+                }
+                // 由编译器决定是否向量化
+                else if constexpr(::cppfastbox::cpu_flags::neon_support)
+                {
+                    lanes.l32 = size >> 5;
+                    lanes.l16 = (size >> 4) & 1;
+                    lanes.l8 = (size >> 3) & 1;
+                    lanes.l4 = (size >> 2) & 1;
+                    lanes.l2 = (size >> 1) & 1;
+                    lanes.l1 = size & 1;
+                }
+                else
+                {
+                    using v [[gnu::vector_size(32)]] = ::std::size_t;
+                    v vsize1{size, size, size, size};
+                    v vsize2{size, size, size, size};
+                    vsize1 >>= v{64, 5, 4, 3};
+                    vsize2 >>= v{2, 1, 0, 0};
+                    vsize1 &= v{1, -1zu, 1, 1};
+                    vsize2 &= v{1, 1, 1, 1};
+                    __builtin_memcpy(&lanes, &vsize1, 32);
+                    __builtin_memcpy(&lanes.l4, &vsize2, 32);
+                }
             }
         }
-        // 向量化效果不理想
+        // 由编译器决定是否向量化
         else if constexpr(lane_max_size == 16)
         {
             lanes.l16 = size >> 4;
